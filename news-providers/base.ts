@@ -1,9 +1,20 @@
 import Parser, { Item } from "rss-parser";
 
-export async function getRssTalkbacks(
+export interface Talkback {
+	writer: string;
+	title?: string;
+	content: string;
+	createDate: Date;
+	positive: number;
+	negative: number;
+	children: Talkback[];
+}
+
+export async function getRssWithTalkbacks(
 	rssURL: string,
 	extractID: (item: Item) => string,
-	getTalkbacksUrl: (id: string) => string
+	getTalkbacksUrl: (id: string) => string,
+	normalizeTalkbacks: (talkbacks: any) => Talkback[]
 ) {
 	const parser = new Parser();
 	const feed = await parser.parseURL(rssURL);
@@ -16,9 +27,10 @@ export async function getRssTalkbacks(
 		console.log("article title: " + item.title);
 
 		const itemID = extractID(item);
+		const talkbacks = await (await fetch(getTalkbacksUrl(itemID))).json();
 		itemWithTalkbacks.push({
 			...item,
-			talkbacks: await (await fetch(getTalkbacksUrl(itemID))).json(),
+			talkbacks: normalizeTalkbacks(talkbacks),
 		});
 	}
 	return itemWithTalkbacks;
