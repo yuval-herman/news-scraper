@@ -8,7 +8,7 @@ interface TalkbackParentId {
 	sourceIp: string;
 	authorLocation: string;
 	authorEmail: string;
-	date: Date;
+	date: string;
 	filterTalkbackStatusValue: string;
 	articleId: string;
 	isConfirmed: boolean;
@@ -23,7 +23,7 @@ interface Item {
 	number?: number;
 	title: string;
 	author: string;
-	pubDate: Date;
+	pubDate: string;
 	text: string;
 	level: number;
 	recommended: boolean;

@@ -29,25 +29,24 @@ export function getWalla() {
 		(item) => item.link!.split("/").at(-1)!,
 		(id) => `https://dal.walla.co.il/talkback/list/${id}?type=1&page=1`,
 		(apiResult: ApiResult): Talkback[] => {
-			const convertTalkback = (
-				item: Item
-			): {
-				createDate: Date;
-				children: Talkback[];
-				id: number;
-				fatherId: number;
-				writer: string;
-				content: string;
-				c1: string;
-				positive: number;
-				negative: number;
-			} => ({
-				...item,
-				createDate: new Date(item.createDate),
-				children: item.children.length
-					? item.children.map(convertTalkback)
-					: [],
-			});
+			const convertTalkback = (item: Item): Talkback => {
+				const [time, date] = item.createDate.split(" ");
+				const [day, month, year] = date.split(".").map(Number);
+				const [hour, minute] = time.split(":").map(Number);
+				return {
+					...item,
+					createDate: new Date(
+						year,
+						month,
+						day,
+						hour,
+						minute
+					).toISOString(),
+					children: item.children.length
+						? item.children.map(convertTalkback)
+						: [],
+				};
+			};
 			return apiResult.data.list
 				? apiResult.data.list.map(convertTalkback)
 				: [];

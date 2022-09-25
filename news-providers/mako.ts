@@ -30,7 +30,7 @@ export function getMako() {
 				title: item.subject,
 				writer: item.username,
 				content: item.text,
-				createDate: new Date(item.dateMs),
+				createDate: new Date(item.dateMs).toISOString(),
 				negative: 0,
 				positive: 0,
 				children: item.replies.length
