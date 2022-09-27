@@ -1,4 +1,4 @@
-import Parser, { Item } from "rss-parser";
+import Parser from "rss-parser";
 
 export interface Talkback {
 	writer: string;
@@ -22,7 +22,7 @@ export interface Article {
 
 export async function getRssWithTalkbacks(
 	rssURL: string,
-	extractID: (item: Item) => string,
+	extractID: (item: Article) => string,
 	getTalkbacks: (id: string) => Promise<Talkback[]>
 ) {
 	const parser = new Parser();
@@ -38,7 +38,7 @@ export async function getRssWithTalkbacks(
 		const itemID = extractID(item);
 		itemWithTalkbacks.push({
 			...item,
-			guid: itemID,
+			guid: itemID, //set guid to itemID in case guid doesn't exist (i.e: inn)
 			talkbacks: await getTalkbacks(itemID),
 		});
 	}
