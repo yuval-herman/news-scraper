@@ -1,10 +1,16 @@
-import { writeFileSync } from "fs";
+import { appendFileSync, writeFileSync } from "fs";
 import { getMako } from "./news-providers/mako";
 import { getWalla } from "./news-providers/walla";
 import { getYnet } from "./news-providers/ynet";
-
 import Database from "better-sqlite3";
 import { Article, Talkback } from "./news-providers/base";
+import path from "path";
+
+appendFileSync(
+	path.join(__dirname, "scraper-log.log"),
+	"scraper wake - " + new Date().toISOString() + "\n"
+);
+
 const db = new Database("db.db");
 
 db.prepare(
@@ -106,3 +112,7 @@ const insertArticles = db.transaction((articles: Article[]) => {
 getYnet().then((data) => insertArticles(data));
 getMako().then((data) => insertArticles(data));
 getWalla().then((data) => insertArticles(data));
+appendFileSync(
+	path.join(__dirname, "scraper-log.log"),
+	"scraper initialized - " + new Date().toISOString() + "\n"
+);
