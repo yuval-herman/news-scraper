@@ -5,6 +5,7 @@ import { getYnet } from "./news-providers/ynet";
 import Database from "better-sqlite3";
 import { Article, Talkback } from "./news-providers/base";
 import path from "path";
+import { getInn } from "./news-providers/inn";
 
 appendFileSync(
 	path.join(__dirname, "scraper-log.log"),
@@ -112,6 +113,7 @@ const insertArticles = db.transaction((articles: Article[]) => {
 getYnet().then((data) => insertArticles(data));
 getMako().then((data) => insertArticles(data));
 getWalla().then((data) => insertArticles(data));
+getInn().then((data) => insertArticles(data));
 appendFileSync(
 	path.join(__dirname, "scraper-log.log"),
 	"scraper initialized - " + new Date().toISOString() + "\n"
