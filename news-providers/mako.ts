@@ -1,6 +1,6 @@
 import { getRssWithTalkbacks, Talkback } from "./base";
 
-export interface Item {
+interface Item {
 	postId: number;
 	index: number;
 	subject: string;
@@ -12,7 +12,7 @@ export interface Item {
 	replies: Item[];
 }
 
-export interface ApiResult {
+interface ApiResult {
 	numMainPosts: number;
 	numReplies: number;
 	numPages: number;
@@ -23,9 +23,12 @@ export function getMako() {
 	return getRssWithTalkbacks(
 		"https://rcs.mako.co.il/rss/31750a2610f26110VgnVCM1000005201000aRCRD.xml",
 		(item) => item.guid!,
-		(id) =>
-			`https://www.mako.co.il/AjaxPage?jspName=talkbacksInJSONresponse.jsp&vgnextoid=${id}&page=1`,
-		(talkbacks: ApiResult): Talkback[] => {
+		async (id: string): Promise<Talkback[]> => {
+			const apiResult: ApiResult = await await (
+				await fetch(
+					`https://www.mako.co.il/AjaxPage?jspName=talkbacksInJSONresponse.jsp&vgnextoid=${id}&page=1`
+				)
+			).json();
 			const convertTalkback = (item: Item): Talkback => ({
 				title: item.subject,
 				writer: item.username,
@@ -37,7 +40,7 @@ export function getMako() {
 					? item.replies.map(convertTalkback)
 					: [],
 			});
-			return talkbacks.mainPosts.map(convertTalkback);
+			return apiResult.mainPosts.map(convertTalkback);
 		}
 	);
 }

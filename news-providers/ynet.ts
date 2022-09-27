@@ -53,9 +53,12 @@ export function getYnet() {
 	return getRssWithTalkbacks(
 		"https://www.ynet.co.il/Integration/StoryRss2.xml",
 		(item) => item.link!.split("/").at(-1)!,
-		(id) =>
-			`https://www.ynet.co.il/iphone/json/api/talkbacks/list/${id}/start_to_end/1`,
-		(talkback: ApiResult): Talkback[] => {
+		async (id: string): Promise<Talkback[]> => {
+			const apiResult: ApiResult = await await (
+				await fetch(
+					`https://www.ynet.co.il/iphone/json/api/talkbacks/list/${id}/start_to_end/1`
+				)
+			).json();
 			const convertTalkback = (item: Item | TalkbackParentId): Talkback => ({
 				writer: item.author,
 				title: item.title,
@@ -65,11 +68,11 @@ export function getYnet() {
 				negative: "unlikes" in item ? item.unlikes : 0,
 				positive: "likes" in item ? item.likes : 0,
 			});
-			if (!talkback.rss.channel.item) return [];
+			if (!apiResult.rss.channel.item) return [];
 			const normalized: Talkback[] = [];
 			const children: Item[] = [];
 
-			for (const item of talkback.rss.channel.item) {
+			for (const item of apiResult.rss.channel.item) {
 				if (item.talkback_parent_id) {
 					children.push(item);
 				} else {

@@ -23,8 +23,7 @@ export interface Article {
 export async function getRssWithTalkbacks(
 	rssURL: string,
 	extractID: (item: Item) => string,
-	getTalkbacksUrl: (id: string) => string,
-	normalizeTalkbacks: (talkbacks: any) => Talkback[]
+	getTalkbacks: (id: string) => Promise<Talkback[]>
 ) {
 	const parser = new Parser();
 	const feed = await parser.parseURL(rssURL);
@@ -37,10 +36,10 @@ export async function getRssWithTalkbacks(
 		console.log("article title: " + item.title);
 
 		const itemID = extractID(item);
-		const talkbacks = await (await fetch(getTalkbacksUrl(itemID))).json();
 		itemWithTalkbacks.push({
 			...item,
-			talkbacks: normalizeTalkbacks(talkbacks),
+			guid: itemID,
+			talkbacks: await getTalkbacks(itemID),
 		});
 	}
 	return itemWithTalkbacks;

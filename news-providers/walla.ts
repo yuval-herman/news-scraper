@@ -27,8 +27,12 @@ export function getWalla() {
 	return getRssWithTalkbacks(
 		"https://rss.walla.co.il/feed/1?type=main",
 		(item) => item.link!.split("/").at(-1)!,
-		(id) => `https://dal.walla.co.il/talkback/list/${id}?type=1&page=1`,
-		(apiResult: ApiResult): Talkback[] => {
+		async (id: string): Promise<Talkback[]> => {
+			const apiResult: ApiResult = await await (
+				await fetch(
+					`https://dal.walla.co.il/talkback/list/${id}?type=1&page=1`
+				)
+			).json();
 			const convertTalkback = (item: Item): Talkback => {
 				const [time, date] = item.createDate.split(" ");
 				const [day, month, year] = date.split(".").map(Number);
