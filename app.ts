@@ -1,3 +1,4 @@
+import hash from "object-hash";
 import { appendFileSync, writeFileSync } from "fs";
 import { getMako } from "./news-providers/mako";
 import { getWalla } from "./news-providers/walla";
@@ -28,7 +29,7 @@ db.prepare(
 
 db.prepare(
 	`CREATE TABLE IF NOT EXISTS talkbacks (
-        id INTEGER PRIMARY KEY,
+        id PRIMARY KEY,
         writer,
         title,
         content,
@@ -41,6 +42,7 @@ db.prepare(
 ).run();
 
 const insertTalkback = db.prepare(`INSERT or IGNORE INTO talkbacks (
+    id,
     writer,
     title,
     content,
@@ -50,6 +52,7 @@ const insertTalkback = db.prepare(`INSERT or IGNORE INTO talkbacks (
     parentID,
     articleGUID
 ) VALUES (
+    @id,
     @writer,
     @title,
     @content,
@@ -61,7 +64,8 @@ const insertTalkback = db.prepare(`INSERT or IGNORE INTO talkbacks (
 )`);
 
 interface DBTalkback extends Talkback {
-	parentID?: number | bigint | null;
+	id: string;
+	parentID?: string | null;
 	children: DBTalkback[];
 	articleGUID: string;
 }
@@ -70,8 +74,9 @@ const insertTalkbacks = db.transaction((talkbacks: DBTalkback[]) => {
 	for (const talkback of talkbacks) {
 		if (!talkback.title) talkback.title = null;
 		if (!talkback.parentID) talkback.parentID = null;
-
-		const id = insertTalkback.run(talkback).lastInsertRowid;
+		const id = hash(talkback);
+		talkback.id = id;
+		insertTalkback.run(talkback);
 		if (talkback.children.length) {
 			insertTalkbacks(
 				talkback.children.map((item) => {
