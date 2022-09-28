@@ -36,6 +36,7 @@ def copyFiles(src: List[str], dst: str):
 
 
 def build():
+    shutil.rmtree('dist')
     run(['npx', 'tsc', '-b'])
     copyDir('dist', 'deploy')
     copyFiles(['package.json', 'package-lock.json'], 'deploy')
