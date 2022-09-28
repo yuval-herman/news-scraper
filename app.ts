@@ -13,7 +13,7 @@ appendFileSync(
 	"scraper wake - " + new Date().toISOString() + "\n"
 );
 
-const db = new Database("db.db");
+const db = new Database(path.join(__dirname, "db.db"));
 
 db.prepare(
 	`CREATE TABLE IF NOT EXISTS articles (
