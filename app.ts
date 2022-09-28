@@ -116,11 +116,24 @@ const insertArticles = db.transaction((articles: Article[]) => {
 	}
 });
 
-getYnet().then((data) => insertArticles(data));
-getMako().then((data) => insertArticles(data));
-getWalla().then((data) => insertArticles(data));
-getInn().then((data) => insertArticles(data));
-getNow14().then((data) => insertArticles(data));
+async function poolPromises<T>(
+	fns: (() => Promise<T>)[],
+	concurrentNum?: number
+) {
+	const results: T[] = [];
+	if (!concurrentNum || concurrentNum < 1) {
+		concurrentNum = 4;
+	}
+	for (let i = 0; i < fns.length; i += concurrentNum) {
+		const promises = fns.slice(i, i + concurrentNum).map((fn) => fn());
+		results.push(...(await Promise.all(promises)));
+	}
+	return results;
+}
+
+poolPromises([getYnet, getMako, getWalla, getInn, getNow14], 4).then((res) =>
+	insertArticles(res.flat())
+);
 
 appendFileSync(
 	path.join(__dirname, "scraper-log.log"),
