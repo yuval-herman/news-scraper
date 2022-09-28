@@ -54,11 +54,23 @@ export function getYnet() {
 		"https://www.ynet.co.il/Integration/StoryRss2.xml",
 		(item) => item.link!.split("/").at(-1)!,
 		async (id: string): Promise<Talkback[]> => {
-			const apiResult: ApiResult = await await (
-				await fetch(
-					`https://www.ynet.co.il/iphone/json/api/talkbacks/list/${id}/start_to_end/1`
-				)
+			let pageCounter = 1;
+			const apiURL = `https://www.ynet.co.il/iphone/json/api/talkbacks/list/${id}/start_to_end/`;
+			let tempResult: ApiResult = await (
+				await fetch(apiURL + pageCounter)
 			).json();
+			const apiResult: ApiResult = tempResult;
+			while (tempResult.rss.channel.hasMore) {
+				pageCounter++;
+				console.log(apiURL + pageCounter);
+
+				tempResult = await (await fetch(apiURL + pageCounter)).json();
+				console.log(tempResult.rss.channel.item!.length);
+
+				apiResult.rss.channel.item = apiResult.rss.channel.item!.concat(
+					tempResult.rss.channel.item!
+				);
+			}
 			const convertTalkback = (item: Item | TalkbackParentId): Talkback => ({
 				writer: item.author,
 				title: item.title,
