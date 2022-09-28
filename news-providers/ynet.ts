@@ -62,11 +62,7 @@ export function getYnet() {
 			const apiResult: ApiResult = tempResult;
 			while (tempResult.rss.channel.hasMore) {
 				pageCounter++;
-				console.log(apiURL + pageCounter);
-
 				tempResult = await (await fetch(apiURL + pageCounter)).json();
-				console.log(tempResult.rss.channel.item!.length);
-
 				apiResult.rss.channel.item = apiResult.rss.channel.item!.concat(
 					tempResult.rss.channel.item!
 				);
