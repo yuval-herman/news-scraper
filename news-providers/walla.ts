@@ -28,11 +28,20 @@ export function getWalla() {
 		"https://rss.walla.co.il/feed/1?type=main",
 		(item) => item.link!.split("/").at(-1)!,
 		async (id: string): Promise<Talkback[]> => {
-			const apiResult: ApiResult = await await (
-				await fetch(
-					`https://dal.walla.co.il/talkback/list/${id}?type=1&page=1`
-				)
+			let pageCounter = 1;
+			const apiURL = `https://dal.walla.co.il/talkback/list/${id}?type=1&page=`;
+			let tempResult: ApiResult = await (
+				await fetch(apiURL + pageCounter)
 			).json();
+			const apiResult: ApiResult = tempResult;
+			if (!apiResult.data.list) return [];
+			while (apiResult.data.discussions > apiResult.data.list.length) {
+				pageCounter++;
+				tempResult = await (await fetch(apiURL + pageCounter)).json();
+				apiResult.data.list = apiResult.data.list.concat(
+					tempResult.data.list!
+				);
+			}
 			const convertTalkback = (item: Item): Talkback => {
 				const [time, date] = item.createDate.split(" ");
 				const [day, month, year] = date.split(".").map(Number);
