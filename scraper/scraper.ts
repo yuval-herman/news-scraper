@@ -63,7 +63,7 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     @articleGUID
 )`);
 
-interface DBTalkback extends Talkback {
+export interface DBTalkback extends Talkback {
 	id: string;
 	parentID?: string | null;
 	children: DBTalkback[];
