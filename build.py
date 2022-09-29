@@ -36,21 +36,22 @@ def copyFiles(src: List[str], dst: str):
 
 
 def build():
-    shutil.rmtree('dist')
-    run(['npx', 'tsc', '-b'])
-    copyDir('dist', 'deploy')
-    copyFiles(['package.json', 'package-lock.json'], 'deploy')
+    shutil.rmtree('scraper/dist', ignore_errors=True)
+    run(['npx', 'tsc', '-b'], cwd='scraper')
 
 
 def deploy():
-    run(['scp', '-r', *glob('deploy/*', recursive=True),
+    copyDir('scraper/dist', 'deploy/scraper')
+    copyFiles(['scraper/package.json', 'scraper/package-lock.json'],
+              'deploy/scraper')
+    run(['scp', '-r', *glob('deploy/*'),
         'root@172.104.236.178:/root/news-scraper'])
     run(['ssh', 'root@172.104.236.178', 'cd',
-        '/root/news-scraper', ';', 'npm', 'ci'])
+        '/root/news-scraper/scraper', ';', 'npm', 'ci'])
 
 
 def fetch():
-    run(['scp', 'root@172.104.236.178:/root/news-scraper/db.db', 'remoteDB.db'])
+    run(['scp', 'root@172.104.236.178:/root/news-scraper/scraper/db.db', 'remoteDB.db'])
 
 
 if args.action == Actions.build.name:
