@@ -41,7 +41,7 @@ db.prepare(
 )`
 ).run();
 
-const insertTalkback = db.prepare(`INSERT or IGNORE INTO talkbacks (
+const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     id,
     writer,
     title,
@@ -74,7 +74,8 @@ const insertTalkbacks = db.transaction((talkbacks: DBTalkback[]) => {
 	for (const talkback of talkbacks) {
 		if (!talkback.title) talkback.title = null;
 		if (!talkback.parentID) talkback.parentID = null;
-		const id = hash(talkback);
+		const { positive: _p, negative: _n, ...noLikesTalkback } = talkback;
+		const id = hash(noLikesTalkback);
 		talkback.id = id;
 		insertTalkback.run(talkback);
 		if (talkback.children.length) {
