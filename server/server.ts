@@ -36,7 +36,7 @@ app.get("/random/article/", (req, res) => {
 	res.json(article);
 });
 
-app.get("/talkback/:id", (req, res) => {
+app.get("/article/:id", (req, res) => {
 	const article = getArticleById(req.params.id);
 	if (!article) res.status(404).send("article not found");
 	else res.json(article);
