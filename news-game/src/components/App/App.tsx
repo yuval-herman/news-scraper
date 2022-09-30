@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { DBTalkback } from "../../../../scraper/scraper";
+import Talkback from "../Talkback/Talkback";
+import style from "./App.module.scss";
 
 async function jsonFetch(input: RequestInfo | URL, init?: RequestInit) {
 	return (await fetch(input, init)).json();
@@ -18,14 +20,12 @@ function App() {
 	console.log(talkbacks);
 
 	return (
-		<div className="App">
-			{talkbacks.map((item) => (
-				<div key={item.id}>
-					<p>{item.writer}</p>
-					<p>{item.title}</p>
-					<p>{item.content}</p>
-				</div>
-			))}
+		<div className={style.main}>
+			<div className={style.talkbacks}>
+				{talkbacks.map((item) => (
+					<Talkback key={item.id} talkback={item} />
+				))}
+			</div>
 		</div>
 	);
 }
