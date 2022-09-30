@@ -1,0 +1,17 @@
+.main {
+	$main: #aaa;
+	border: solid $main 1px;
+	border-radius: 10px;
+	padding: 1%;
+	.title {
+		text-decoration: underline;
+	}
+	.writer {
+		font-size: small;
+	}
+	.content {
+		background-color: lighten($color: $main, $amount: 25);
+		border-radius: 10px;
+		padding: 1%;
+	}
+}
