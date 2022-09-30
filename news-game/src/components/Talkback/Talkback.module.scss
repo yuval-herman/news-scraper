@@ -1,5 +1,10 @@
+$main: #aaa;
 .main {
-	$main: #aaa;
+	&:hover:not(.correct, .incorrect) {
+		background-color: lighten($color: $main, $amount: 15);
+		scale: 102%;
+	}
+	transition: all 0.5s;
 	border: solid $main 1px;
 	border-radius: 10px;
 	padding: 1%;
@@ -14,4 +19,13 @@
 		border-radius: 10px;
 		padding: 1%;
 	}
+	cursor: pointer;
+}
+.correct {
+	background-color: #4ca143;
+	scale: 105%;
+}
+
+.incorrect {
+	background-color: #d0393e;
 }

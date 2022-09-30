@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Article as ArticleType } from "../../../../scraper/news-providers/base";
 import { DBTalkback } from "../../../../scraper/scraper";
 import Article from "../Article/Article";
@@ -12,21 +13,50 @@ function App() {
 	const rendered = useRef(false);
 	const [talkbacks, setTalkbacks] = useState<DBTalkback[]>([]);
 	const [article, setArticle] = useState<ArticleType>();
+	const [showCorrect, setShowCorrect] = useState<boolean>(false);
+	const fetchData = useCallback(async () => {
+		const resTalkbacks: DBTalkback[] = await jsonFetch(
+			"http://localhost:4000/random/talkback?amount=4"
+		);
+		setTalkbacks(resTalkbacks);
+		const { articleGUID } =
+			resTalkbacks[Math.floor(Math.random() * resTalkbacks.length)];
+		const article = await jsonFetch(
+			"http://localhost:4000/article/" + articleGUID
+		);
+		setArticle(article);
+	}, []);
 	useEffect(() => {
 		if (rendered.current) return;
 		rendered.current = true;
-		jsonFetch("http://localhost:4000/random/talkback?amount=4").then((res) =>
-			setTalkbacks((t) => [...t, ...res])
-		);
+		fetchData();
 	});
 	console.log(talkbacks);
 
 	return (
 		<div className={style.main}>
 			{article ? <Article article={article} /> : "fetching article"}
+
+			<button
+				className={style["next-button"]}
+				style={{ opacity: showCorrect ? 1 : 0 }}
+				onClick={() => {
+					fetchData();
+					setShowCorrect(false);
+				}}
+				disabled={!showCorrect}
+			>
+				הבא!
+			</button>
 			<div className={style.talkbacks}>
 				{talkbacks.map((item) => (
-					<Talkback key={item.id} talkback={item} />
+					<Talkback
+						onClick={() => setShowCorrect((prev) => !prev)}
+						key={item.id}
+						talkback={item}
+						isCorrect={article && item.articleGUID === article.guid}
+						showCorrect={showCorrect}
+					/>
 				))}
 			</div>
 		</div>

@@ -1,6 +1,21 @@
 .main {
 	display: flex;
 	flex-direction: column;
+	.next-button {
+		transition: all 0.5s;
+		margin: 0 1rem;
+		border: none;
+		border-radius: 10px;
+		padding: 0.5rem;
+		background-color: black;
+		color: white;
+		font-size: large;
+		font-weight: 600;
+		letter-spacing: 0.5rem;
+		&:enabled {
+			cursor: pointer;
+		}
+	}
 	.talkbacks {
 		display: flex;
 		flex-direction: column;
