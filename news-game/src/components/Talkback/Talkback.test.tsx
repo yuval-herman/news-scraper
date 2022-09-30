@@ -18,12 +18,10 @@ describe("Talkback component", () => {
 		};
 		const talkback = render(<Talkback talkback={DBtalkback} />);
 		it("renders writer name", () =>
-			expect(talkback.getByText("מושיקו")).toBeInTheDocument());
+			expect(talkback.getByText(DBtalkback.writer)).toBeInTheDocument());
 		it("renders the title", () =>
 			expect(talkback.getByText(DBtalkback.title)).toBeInTheDocument());
 		it("renders talkback content", () =>
-			expect(
-				talkback.getByText(DBtalkback.content.trim())
-			).toBeInTheDocument());
+			expect(talkback.getByText(DBtalkback.content)).toBeInTheDocument());
 	});
 });
