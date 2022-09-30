@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { Article as ArticleType } from "../../../../scraper/news-providers/base";
 import { DBTalkback } from "../../../../scraper/scraper";
+import Article from "../Article/Article";
 import Talkback from "../Talkback/Talkback";
 import style from "./App.module.scss";
 
@@ -10,6 +11,7 @@ async function jsonFetch(input: RequestInfo | URL, init?: RequestInit) {
 function App() {
 	const rendered = useRef(false);
 	const [talkbacks, setTalkbacks] = useState<DBTalkback[]>([]);
+	const [article, setArticle] = useState<ArticleType>();
 	useEffect(() => {
 		if (rendered.current) return;
 		rendered.current = true;
@@ -21,6 +23,7 @@ function App() {
 
 	return (
 		<div className={style.main}>
+			{article ? <Article article={article} /> : "fetching article"}
 			<div className={style.talkbacks}>
 				{talkbacks.map((item) => (
 					<Talkback key={item.id} talkback={item} />
