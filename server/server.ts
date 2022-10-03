@@ -14,6 +14,10 @@ const getArticleByRowid = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
 const articlesMaxRowid = () =>
 	db.prepare("SELECT max(rowid) FROM articles").get()["max(rowid)"];
+const getTalkbackByRowid = (id: string) =>
+	db.prepare("SELECT * FROM talkbacks WHERE rowid = ?").get(id);
+const talkbacksMaxRowid = () =>
+	db.prepare("SELECT max(rowid) FROM talkbacks").get()["max(rowid)"];
 
 function getRandomNumbers(max: number, num: number) {
 	const numArr = Array(num);
@@ -30,13 +34,12 @@ const STATIC_PATH = path.join(__dirname, "../news-game");
 app.use(express.static(STATIC_PATH));
 
 app.get("/random/talkback/", (req, res) => {
-	const amount = req.query.amount || 1;
-	const talkbacks = db
-		.prepare(
-			"SELECT * FROM talkbacks WHERE parentID is NULL ORDER BY RANDOM() LIMIT " +
-				amount
-		)
-		.all();
+	const amount = Number(req.query.amount) || 1;
+	const rowidArr = getRandomNumbers(talkbacksMaxRowid(), amount);
+	const talkbacks = Array(amount);
+	for (let i = 0; i < rowidArr.length; i++) {
+		talkbacks[i] = getTalkbackByRowid(rowidArr[i]);
+	}
 	res.json(talkbacks);
 });
 
