@@ -45,5 +45,5 @@ app.get("/article/:id", (req, res) => {
 app.get("*", (_, res) => res.sendFile(path.join(STATIC_PATH, "index.html")));
 
 app.listen(port, () => {
-	console.log(`Example app listening on port ${port}`);
+	console.log(`listening on port ${port}`);
 });
