@@ -10,6 +10,18 @@ const dbPath = isDeployed
 const db = new Database(dbPath);
 const getArticleById = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE guid = ?").get(id);
+const getArticleByRowid = (id: string) =>
+	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
+const articlesMaxRowid = () =>
+	db.prepare("SELECT max(rowid) FROM articles").get()["max(rowid)"];
+
+function getRandomNumbers(max: number, num: number) {
+	const numArr = Array(num);
+	for (let i = 0; i < num; i++) {
+		numArr[i] = Math.floor(Math.random() * max) + 1;
+	}
+	return numArr;
+}
 
 const app = express();
 const port = 4000;
@@ -29,11 +41,14 @@ app.get("/random/talkback/", (req, res) => {
 });
 
 app.get("/random/article/", (req, res) => {
-	const amount = req.query.amount || 1;
-	const article = db
-		.prepare("SELECT * FROM articles ORDER BY RANDOM() LIMIT " + amount)
-		.all();
-	res.json(article);
+	const amount = Number(req.query.amount) || 1;
+	const rowidArr = getRandomNumbers(articlesMaxRowid(), amount);
+
+	const articles = Array(amount);
+	for (let i = 0; i < rowidArr.length; i++) {
+		articles[i] = getArticleByRowid(rowidArr[i]);
+	}
+	res.json(articles);
 });
 
 app.get("/article/:id", (req, res) => {
