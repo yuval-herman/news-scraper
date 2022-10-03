@@ -36,18 +36,43 @@ def copyFiles(src: List[str], dst: str):
 
 
 def build():
+    # scraper
     shutil.rmtree('scraper/dist', ignore_errors=True)
     run(['npx', 'tsc', '-b'], cwd='scraper')
 
+    # server
+    shutil.rmtree('server/dist', ignore_errors=True)
+    run(['npx', 'tsc', '-b'], cwd='server')
+
+    # news-game
+    run(['npm', 'run', 'build'], cwd='news-game')
+
 
 def deploy():
+    # scraper
     copyDir('scraper/dist', 'deploy/scraper')
     copyFiles(['scraper/package.json', 'scraper/package-lock.json'],
               'deploy/scraper')
+
+    # server
+    copyDir('server/dist', 'deploy/server')
+    copyFiles(['server/package.json', 'server/package-lock.json'],
+              'deploy/server')
+
+    # news-game
+    copyDir('news-game/build', 'deploy/news-game')
+
+    # copy all files
     run(['scp', '-r', *glob('deploy/*'),
-        'root@172.104.236.178:/root/news-scraper'])
+        'root@172.104.236.178:/root/news-scraper/'])
+
+    # install scraper
     run(['ssh', 'root@172.104.236.178', 'cd',
         '/root/news-scraper/scraper', ';', 'npm', 'ci'])
+
+    # install server
+    run(['ssh', 'root@172.104.236.178', 'cd',
+        '/root/news-scraper/server', ';', 'npm', 'ci'])
 
 
 def fetch():
