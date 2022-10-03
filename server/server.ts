@@ -35,10 +35,19 @@ app.use(express.static(STATIC_PATH));
 
 app.get("/random/talkback/", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
-	const rowidArr = getRandomNumbers(talkbacksMaxRowid(), amount);
+
+	const maxRowid = talkbacksMaxRowid();
+	const rowidArr = getRandomNumbers(maxRowid, amount);
 	const talkbacks = Array(amount);
 	for (let i = 0; i < rowidArr.length; i++) {
-		talkbacks[i] = getTalkbackByRowid(rowidArr[i]);
+		let talkback = getTalkbackByRowid(rowidArr[i]);
+		console.log(talkback);
+		let retries = 0;
+		while (talkback.parentID != null || retries > 5) {
+			retries++;
+			talkback = getTalkbackByRowid(getRandomNumbers(maxRowid, 1)[0]);
+		}
+		talkbacks[i] = talkback;
 	}
 	res.json(talkbacks);
 });
