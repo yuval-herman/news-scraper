@@ -16,14 +16,12 @@ function App() {
 	const [showCorrect, setShowCorrect] = useState<boolean>(false);
 	const fetchData = useCallback(async () => {
 		const resTalkbacks: DBTalkback[] = await jsonFetch(
-			"http://localhost:4000/random/talkback?amount=4"
+			"/random/talkback?amount=4"
 		);
 		setTalkbacks(resTalkbacks);
 		const { articleGUID } =
 			resTalkbacks[Math.floor(Math.random() * resTalkbacks.length)];
-		const article = await jsonFetch(
-			"http://localhost:4000/article/" + articleGUID
-		);
+		const article = await jsonFetch("/article/" + articleGUID);
 		setArticle(article);
 	}, []);
 	useEffect(() => {
