@@ -41,7 +41,6 @@ app.get("/random/talkback/", (req, res) => {
 	const talkbacks = Array(amount);
 	for (let i = 0; i < rowidArr.length; i++) {
 		let talkback = getTalkbackByRowid(rowidArr[i]);
-		console.log(talkback);
 		let retries = 0;
 		while (talkback.parentID != null || retries > 5) {
 			retries++;
