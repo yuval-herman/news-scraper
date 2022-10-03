@@ -33,19 +33,25 @@ function App() {
 
 	return (
 		<div className={style.main}>
-			{article ? <Article article={article} /> : "fetching article"}
+			<div className={style["article-div"]}>
+				{article ? (
+					<Article className={style.article} article={article} />
+				) : (
+					"fetching article"
+				)}
 
-			<button
-				className={style["next-button"]}
-				style={{ opacity: showCorrect ? 1 : 0 }}
-				onClick={() => {
-					fetchData();
-					setShowCorrect(false);
-				}}
-				disabled={!showCorrect}
-			>
-				הבא!
-			</button>
+				<button
+					className={style["next-button"]}
+					style={{ opacity: showCorrect ? 1 : 0 }}
+					onClick={() => {
+						fetchData();
+						setShowCorrect(false);
+					}}
+					disabled={!showCorrect}
+				>
+					הבא!
+				</button>
+			</div>
 			<div className={style.talkbacks}>
 				{talkbacks.map((item) => (
 					<Talkback
