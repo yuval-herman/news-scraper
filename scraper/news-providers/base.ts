@@ -26,7 +26,14 @@ export async function getRssWithTalkbacks(
 	getTalkbacks: (id: string) => Promise<Talkback[]>
 ) {
 	const parser = new Parser();
-	const feed = await parser.parseURL(rssURL);
+	let feed;
+	try {
+		feed = await parser.parseURL(rssURL);
+	} catch (error) {
+		console.log(error);
+		console.log(rssURL);
+		return [];
+	}
 	const itemWithTalkbacks: Article[] = [];
 	let counter = 0;
 	const totalItems = feed.items.length;
