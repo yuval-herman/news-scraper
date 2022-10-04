@@ -29,7 +29,6 @@ function App() {
 		rendered.current = true;
 		fetchData();
 	});
-	console.log(talkbacks);
 
 	return (
 		<div className={style.main}>
