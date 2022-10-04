@@ -3,7 +3,7 @@ $main: #aaa;
 	box-sizing: border-box;
 	&:hover:not(.correct, .incorrect) {
 		background-color: lighten($color: $main, $amount: 15);
-		scale: 102%;
+		scale: 101%;
 	}
 	display: flex;
 	flex-direction: column;
@@ -21,13 +21,13 @@ $main: #aaa;
 		background-color: lighten($color: $main, $amount: 25);
 		border-radius: 10px;
 		padding: 1%;
-		overflow: scroll;
+		overflow-y: scroll;
 	}
 	cursor: pointer;
 }
 .correct {
 	background-color: #4ca143;
-	scale: 105%;
+	scale: 102%;
 }
 
 .incorrect {
