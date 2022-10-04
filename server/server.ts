@@ -42,7 +42,7 @@ app.get("/random/talkback/", (req, res) => {
 	for (let i = 0; i < rowidArr.length; i++) {
 		let talkback = getTalkbackByRowid(rowidArr[i]);
 		let retries = 0;
-		while (!talkback.parentID || retries > 5) {
+		while (!talkback.parentID && retries < 5) {
 			retries++;
 			talkback = getTalkbackByRowid(getRandomNumbers(maxRowid, 1)[0]);
 		}
