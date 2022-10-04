@@ -55,7 +55,7 @@ function Game() {
 				{talkbacks.map((item) => (
 					<Talkback
 						onClick={() => setShowCorrect((prev) => !prev)}
-						key={item.id}
+						key={item.hash}
 						talkback={item}
 						isCorrect={article && item.articleGUID === article.guid}
 						showCorrect={showCorrect}
