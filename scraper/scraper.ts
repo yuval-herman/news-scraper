@@ -18,7 +18,8 @@ const db = new Database(path.join(__dirname, "db.db"));
 
 db.prepare(
 	`CREATE TABLE IF NOT EXISTS articles (
-    guid PRIMARY KEY,
+	id INTEGER PRIMARY KEY,
+    guid UNIQUE,
 	title,
    	link,
     pubDate,
@@ -29,7 +30,8 @@ db.prepare(
 
 db.prepare(
 	`CREATE TABLE IF NOT EXISTS talkbacks (
-        id PRIMARY KEY,
+        id INTEGER PRIMARY KEY,
+		hash UNIQUE,
         writer,
         title,
         content,
@@ -42,7 +44,7 @@ db.prepare(
 ).run();
 
 const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
-    id,
+    hash,
     writer,
     title,
     content,
@@ -52,7 +54,7 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     parentID,
     articleGUID
 ) VALUES (
-    @id,
+    @hash,
     @writer,
     @title,
     @content,
@@ -64,8 +66,9 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
 )`);
 
 export interface DBTalkback extends Talkback {
-	id: string;
-	parentID?: string | null;
+	id: number | bigint;
+	hash: string;
+	parentID?: number | bigint | null;
 	children: DBTalkback[];
 	articleGUID: string;
 }
@@ -75,9 +78,9 @@ const insertTalkbacks = db.transaction((talkbacks: DBTalkback[]) => {
 		if (!talkback.title) talkback.title = null;
 		if (!talkback.parentID) talkback.parentID = null;
 		const { positive: _p, negative: _n, ...noLikesTalkback } = talkback;
-		const id = hash(noLikesTalkback);
-		talkback.id = id;
-		insertTalkback.run(talkback);
+		const obj_hash = hash(noLikesTalkback);
+		talkback.hash = obj_hash;
+		const id = insertTalkback.run(talkback).lastInsertRowid;
 		if (talkback.children.length) {
 			insertTalkbacks(
 				talkback.children.map((item) => {
