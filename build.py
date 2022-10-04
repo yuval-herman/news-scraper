@@ -73,6 +73,8 @@ def deploy():
     # install server
     run(['ssh', 'root@172.104.236.178', 'cd',
         '/root/news-scraper/server', ';', 'npm', 'ci'])
+    run(['ssh', 'root@172.104.236.178', 'systemctl',
+        'restart', 'news-game-server.service'])
 
 
 def fetch():
