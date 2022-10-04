@@ -15,10 +15,13 @@ function App() {
 		<div className={style.main}>
 			<h1 className={style.title}>משחק חדשות ללא שם!</h1>
 			<div className={style.buttons}>
-				<button onClick={() => setGameState(GameState.playing)}>
+				<button
+					className={style.button}
+					onClick={() => setGameState(GameState.playing)}
+				>
 					להתחלה!
 				</button>
-				<button>הוראות</button>
+				<button className={style.button}>הוראות</button>
 			</div>
 		</div>
 	);
