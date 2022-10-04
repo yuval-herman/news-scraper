@@ -1,5 +1,10 @@
 $main: #aaa;
+
+* {
+	transition: all 0.5s;
+}
 .main {
+	--show-link: 0;
 	box-sizing: border-box;
 	&:hover:not(.correct, .incorrect) {
 		background-color: lighten($color: $main, $amount: 15);
@@ -7,15 +12,40 @@ $main: #aaa;
 	}
 	display: flex;
 	flex-direction: column;
-	transition: all 0.5s;
 	border: solid $main 1px;
 	border-radius: 10px;
 	padding: 1%;
+	.head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		.writer {
+			font-size: small;
+		}
+		.link {
+			margin: 1rem;
+			opacity: var(--show-link);
+			pointer-events: all;
+			outline: none;
+			text-decoration: none;
+			padding: 2px 1px 0;
+			&:link {
+				color: blue;
+			}
+			&:visited {
+				color: purple;
+			}
+			&:focus,
+			&:hover {
+				border-bottom: 1px solid;
+			}
+			&:active {
+				color: red;
+			}
+		}
+	}
 	.title {
 		text-decoration: underline;
-	}
-	.writer {
-		font-size: small;
 	}
 	.content {
 		background-color: lighten($color: $main, $amount: 25);
@@ -32,4 +62,10 @@ $main: #aaa;
 
 .incorrect {
 	background-color: #d0393e;
+}
+
+.correct,
+.incorrect {
+	--show-link: 1;
+	pointer-events: none;
 }
