@@ -29,7 +29,12 @@ function Talkback(props: Props) {
 		<div onClick={onClick} className={style.main + showCorrectClass}>
 			<div className={style.head}>
 				<p className={style.writer}>{talkback.writer}</p>
-				<a href={articleLink} className={style.link} target="_blank">
+				<a
+					href={articleLink}
+					className={style.link}
+					rel="noreferrer"
+					target="_blank"
+				>
 					Link to original article
 				</a>
 			</div>
