@@ -6,6 +6,7 @@ enum GameState {
 	menu,
 	playing,
 	instructions,
+	about,
 }
 
 function App() {
@@ -24,10 +25,41 @@ function App() {
 			</div>
 		);
 	}
-	if (gameState === GameState.instructions) {
+	if (gameState === GameState.about) {
 		return (
 			<div className={style.main}>
-				<div className={style.instructions}>
+				<div className={style["text-box"]}>
+					<p>המשחק נבנה ב❤ ע"י יובל הרמן.</p>
+					<p>
+						המשחק בנוי בעזרת טכנולוגיית ריאקט, sqlite, node וtypescript.
+					</p>
+					<p>
+						לעוד פרטים עלי להלן{" "}
+						<a href="https://www.linkedin.com/in/yuvalherman99/">
+							דף הלינקדאין שלי
+						</a>
+						.
+					</p>
+					<p>
+						לעוד פרטים על המשחק{" "}
+						<a href="https://github.com/yuval-herman/news-scraper">
+							להלן דף הגיטהאב שלו
+						</a>
+						.
+					</p>
+					<button
+						className={style.button}
+						onClick={() => setGameState(GameState.menu)}
+					>
+						חזרה לתפריט
+					</button>
+				</div>
+			</div>
+		);
+	} else if (gameState === GameState.instructions) {
+		return (
+			<div className={style.main}>
+				<div className={style["text-box"]}>
 					<p>המשחק די פשוט!</p>
 					<p>במסך יוצגו 2 אלמנטים עיקריים: המאמר, והתגובות.</p>
 					<p>
@@ -65,6 +97,13 @@ function App() {
 					onClick={() => setGameState(GameState.instructions)}
 				>
 					הוראות
+				</button>
+
+				<button
+					className={style.button}
+					onClick={() => setGameState(GameState.about)}
+				>
+					אודות
 				</button>
 			</div>
 		</div>
