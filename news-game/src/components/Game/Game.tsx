@@ -33,6 +33,11 @@ function Game() {
 				)[0];
 			}
 			resTalkbacks.push(correctTalkback);
+			const randIndex = Math.floor(Math.random() * resTalkbacks.length);
+			[resTalkbacks[3], resTalkbacks[randIndex]] = [
+				resTalkbacks[randIndex],
+				resTalkbacks[3],
+			]; //randomize correct answer location
 
 			setArticle(article);
 			setTalkbacks(resTalkbacks);
