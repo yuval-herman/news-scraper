@@ -57,3 +57,31 @@
 		}
 	}
 }
+
+.error {
+	max-width: 70%;
+	padding: 1rem;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	translate: -50% -50%;
+	border: solid #aaa 1px;
+	border-radius: 10px;
+}
+
+.waiter {
+	margin: auto;
+	animation: waiter 2s ease-in-out infinite;
+}
+
+@keyframes waiter {
+	0% {
+		translate: -1rem;
+	}
+	50% {
+		translate: 1rem;
+	}
+	100% {
+		translate: -1rem;
+	}
+}

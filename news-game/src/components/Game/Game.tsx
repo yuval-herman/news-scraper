@@ -14,15 +14,21 @@ function Game() {
 	const [talkbacks, setTalkbacks] = useState<DBTalkback[]>([]);
 	const [article, setArticle] = useState<ArticleType>();
 	const [showCorrect, setShowCorrect] = useState<boolean>(false);
+	const [error, setError] = useState<Error>();
+
 	const fetchData = useCallback(async () => {
-		const resTalkbacks: DBTalkback[] = await jsonFetch(
-			"/random/talkback?amount=4"
-		);
-		setTalkbacks(resTalkbacks);
-		const { articleGUID } =
-			resTalkbacks[Math.floor(Math.random() * resTalkbacks.length)];
-		const article = await jsonFetch("/article/" + articleGUID);
-		setArticle(article);
+		try {
+			const resTalkbacks: DBTalkback[] = await jsonFetch(
+				"/random/talkback?amount=4"
+			);
+			setTalkbacks(resTalkbacks);
+			const { articleGUID } =
+				resTalkbacks[Math.floor(Math.random() * resTalkbacks.length)];
+			const article = await jsonFetch("/article/" + articleGUID);
+			setArticle(article);
+		} catch (errorObj) {
+			setError(errorObj as Error);
+		}
 	}, []);
 	useEffect(() => {
 		if (rendered.current) return;
@@ -30,13 +36,30 @@ function Game() {
 		fetchData();
 	});
 
+	if (error) {
+		return (
+			<div className={style.error}>
+				<p>קרתה תקלה (×_×;)...</p>
+				<p>
+					נסו לרענן את העמוד, אם התקלה נשארת, תרגישו חופשי לפתוח issue בדף
+					הגיטהאב של האפליקציה!
+				</p>
+				<p>
+					<a href="https://github.com/yuval-herman/news-scraper">
+						https://github.com/yuval-herman/news-scraper
+					</a>
+				</p>
+			</div>
+		);
+	}
+
 	return (
 		<div className={style.main}>
 			<div className={style["article-div"]}>
 				{article ? (
 					<Article className={style.article} article={article} />
 				) : (
-					"fetching article"
+					<p className={style.waiter}>מוריד מאמר...</p>
 				)}
 
 				<button
