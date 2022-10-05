@@ -10,6 +10,8 @@ const dbPath = isDeployed
 const db = new Database(dbPath);
 const getArticleById = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE guid = ?").get(id);
+const getTalkbackByArticleGuid = (guid: string) =>
+	db.prepare("SELECT * FROM talkbacks WHERE articleGUID = ?").all(guid);
 const getArticleByRowid = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
 const articlesMaxRowid = () =>
@@ -19,12 +21,22 @@ const getTalkbackByRowid = (id: string) =>
 const talkbacksMaxRowid = () =>
 	db.prepare("SELECT max(rowid) FROM talkbacks").get()["max(rowid)"];
 
-function getRandomNumbers(max: number, num: number) {
-	const numArr = Array(num);
-	for (let i = 0; i < num; i++) {
+function getRandomNumbers(max: number, amount: number) {
+	const numArr = Array(amount);
+	for (let i = 0; i < amount; i++) {
 		numArr[i] = Math.floor(Math.random() * max) + 1;
 	}
 	return numArr;
+}
+
+function sampleRandom<T>(arr: T[], amount: number) {
+	if (amount < 0) amount = 1;
+	const resArr: T[] = Array(Math.min(amount, arr.length));
+	for (let i = 0; i < amount && arr.length; i++) {
+		const randIndex = Math.floor(Math.random() * arr.length);
+		resArr[i] = arr.splice(randIndex, 1)[0];
+	}
+	return resArr;
 }
 
 const app = express();
@@ -35,7 +47,6 @@ app.use(express.static(STATIC_PATH));
 
 app.get("/random/talkback/", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
-
 	const maxRowid = talkbacksMaxRowid();
 	const rowidArr = getRandomNumbers(maxRowid, amount);
 	const talkbacks = Array(amount);
@@ -49,6 +60,12 @@ app.get("/random/talkback/", (req, res) => {
 		talkbacks[i] = talkback;
 	}
 	res.json(talkbacks);
+});
+
+app.get("/random/talkback/:guid", (req, res) => {
+	const amount = Number(req.query.amount) || 1;
+	const talkbacks = getTalkbackByArticleGuid(req.params.guid);
+	res.json(sampleRandom(talkbacks, amount));
 });
 
 app.get("/random/article/", (req, res) => {
