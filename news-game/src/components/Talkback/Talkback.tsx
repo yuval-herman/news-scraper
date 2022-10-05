@@ -11,16 +11,16 @@ interface Props {
 
 function Talkback(props: Props) {
 	const [articleLink, setArticleLink] = useState<string>();
+	const talkback = props.talkback;
 	useEffect(() => {
 		fetch(`/article/${talkback.articleGUID}`).then((r) =>
 			r.json().then((article) => setArticleLink(article.link))
 		);
-	});
+	}, [talkback.articleGUID]);
 	function onClick(event: MouseEvent) {
 		if ((event.target as HTMLElement).nodeName === "A") return;
 		props.onClick();
 	}
-	const talkback = props.talkback;
 	let showCorrectClass = " ";
 	if (props.showCorrect) {
 		showCorrectClass += props.isCorrect ? style.correct : style.incorrect;
