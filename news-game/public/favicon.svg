@@ -1,162 +1,23 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
-<svg
-   width="14.816667mm"
-   height="16.933334mm"
-   viewBox="0 0 14.816667 16.933334"
-   version="1.1"
-   id="svg5"
-   inkscape:version="1.2.1 (0f2f062aeb, 2022-09-21, custom)"
-   sodipodi:docname="favicon.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <sodipodi:namedview
-     id="namedview7"
-     pagecolor="#505050"
-     bordercolor="#eeeeee"
-     borderopacity="1"
-     inkscape:showpageshadow="0"
-     inkscape:pageopacity="0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#505050"
-     inkscape:document-units="mm"
-     showgrid="false"
-     inkscape:zoom="6.7277216"
-     inkscape:cx="24.228113"
-     inkscape:cy="26.754971"
-     inkscape:window-width="1920"
-     inkscape:window-height="988"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
-  <defs
-     id="defs2" />
-  <g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(-47.830874,-150.9443)">
-    <desc
-       id="desc182" />
-    <g
-       id="g198"
-       transform="matrix(0.52916667,0,0,0.52916667,46.772541,150.9443)">
-      <path
-         d="M 25,3 V 1 H 3 v 28 c 0,1.105 0.895,2 2,2 h 22 c 1.105,0 2,-0.895 2,-2 V 3 Z"
-         fill="none"
-         stroke="#000000"
-         stroke-linejoin="round"
-         stroke-miterlimit="10"
-         stroke-width="2"
-         id="path184" />
-      <line
-         fill="none"
-         stroke="#000000"
-         stroke-linejoin="round"
-         stroke-miterlimit="10"
-         stroke-width="2"
-         x1="25"
-         x2="25"
-         y1="3"
-         y2="24"
-         id="line188" />
-      <line
-         fill="none"
-         stroke="#000000"
-         stroke-linejoin="round"
-         stroke-miterlimit="10"
-         stroke-width="2"
-         x1="25"
-         x2="25"
-         y1="26"
-         y2="28"
-         id="line190" />
-      <line
-         fill="none"
-         stroke="#000000"
-         stroke-linejoin="round"
-         stroke-miterlimit="10"
-         stroke-width="2"
-         x1="6"
-         x2="22"
-         y1="15"
-         y2="15"
-         id="line192" />
-      <line
-         fill="none"
-         stroke="#000000"
-         stroke-linejoin="round"
-         stroke-miterlimit="10"
-         stroke-width="2"
-         x1="6"
-         x2="22"
-         y1="19"
-         y2="19"
-         id="line194" />
-      <line
-         fill="none"
-         stroke="#000000"
-         stroke-linejoin="round"
-         stroke-miterlimit="10"
-         stroke-width="2"
-         x1="6"
-         x2="18"
-         y1="23"
-         y2="23"
-         id="line196" />
-      <line
-         fill="none"
-         stroke="#000000"
-         stroke-linejoin="round"
-         stroke-miterlimit="10"
-         stroke-width="0.892301"
-         x1="18.815195"
-         x2="22"
-         y1="11"
-         y2="11"
-         id="line344"
-         style="font-variation-settings:normal;opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1" />
-      <line
-         fill="none"
-         stroke="#000000"
-         stroke-linejoin="round"
-         stroke-miterlimit="10"
-         stroke-width="0.892301"
-         x1="18.815195"
-         x2="22"
-         y1="7"
-         y2="7"
-         id="line929"
-         style="font-variation-settings:normal;opacity:1;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1" />
-    </g>
-    <g
-       id="g939"
-       transform="translate(0,0.45104783)">
-      <g
-         id="g342"
-         transform="matrix(0.25048051,0,0,0.16946271,34.787572,127.8198)">
-        <path
-           d="m 61.440414,152.5318 c -0.561326,0 -1.01322,0.4519 -1.01322,1.01322 v 15.78734 c 0,0.56132 0.451894,1.01322 1.01322,1.01322 h 7.947659 7.839681 c 0.561326,0 1.01322,-0.4519 1.01322,-1.01322 v -15.78734 c 0,-0.56132 -0.451894,-1.01322 -1.01322,-1.01322 h -7.839681 z"
-           id="rect6883"
-           style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.0238671;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-        <path
-           d="m 61.440414,152.5318 c -0.561326,0 -1.01322,0.4519 -1.01322,1.01322 v 2.81007 h 17.81378 v -2.81007 c 0,-0.56132 -0.451894,-1.01322 -1.01322,-1.01322 h -7.839681 z"
-           id="rect4772"
-           style="opacity:1;fill:#0038b8;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.476592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke" />
-        <path
-           d="m 61.440414,170.34558 c -0.561326,0 -1.01322,-0.45189 -1.01322,-1.01322 v -2.81007 h 17.81378 v 2.81007 c 0,0.56133 -0.451894,1.01322 -1.01322,1.01322 h -7.839682 z"
-           id="path4777"
-           style="opacity:1;fill:#0038b8;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.476592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke" />
-      </g>
-      <path
-         d="m 69.338319,157.99145 -0.994324,1.71893 -1.585687,0.001 -0.412875,3.4e-4 0.998793,1.72667 -0.998793,1.72671 0.412875,3.4e-4 1.585687,0.001 0.994324,1.71889 0.989623,-1.71726 1.994792,0.002 -0.99786,-1.73155 0.99786,-1.7315 -1.994745,0.002 z m -8.85e-4,0.95322 0.440659,0.76459 -0.883321,6.8e-4 z m 2.160155,1.23983 -0.447734,0.77693 -0.447316,-0.77618 z m -1.444944,10e-4 0.722147,1.25305 -0.722147,1.25309 -1.433681,-0.001 -0.724147,-1.25193 0.724147,-1.25193 z m -1.984506,0.002 -0.448618,0.77557 -0.448201,-0.77483 z m -0.448572,1.7274 0.448665,0.77563 -0.896912,-6.8e-4 z m 3.430288,0.001 0.447734,0.77692 -0.89505,-6.8e-4 z m -2.15513,1.25151 0.883368,6.8e-4 -0.440659,0.76464 z"
-         id="path4761"
-         style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#0038b8;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.476592;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
-         transform="matrix(0.25048051,0,0,0.25048051,34.787573,114.74039)" />
-    </g>
-  </g>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="14.817mm" height="16.933mm" version="1.1" viewBox="0 0 14.817 16.933" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(-47.831 -150.94)">
+<g transform="matrix(.52917 0 0 .52917 46.773 150.94)" stroke="#000" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2">
+<path d="m25 3v-2h-22v28c0 1.105 0.895 2 2 2h22c1.105 0 2-0.895 2-2v-26z" fill="#b3b3b3"/>
+<line x1="25" x2="25" y1="3" y2="24" fill="none"/>
+<line x1="25" x2="25" y1="26" y2="28" fill="none"/>
+<line x1="6" x2="22" y1="15" y2="15" fill="none"/>
+<line x1="6" x2="22" y1="19" y2="19" fill="none"/>
+<line x1="6" x2="18" y1="23" y2="23" fill="none"/>
+<line x1="18.815" x2="22" y1="11" y2="11" fill="none" stop-color="#000000" style="font-variation-settings:normal"/>
+<line x1="18.815" x2="22" y1="7" y2="7" fill="none" stop-color="#000000" style="font-variation-settings:normal"/>
+</g>
+<g transform="translate(0 .45105)">
+<g transform="matrix(.25048 0 0 .16946 34.788 127.82)">
+<path d="m61.44 152.53c-0.56133 0-1.0132 0.4519-1.0132 1.0132v15.787c0 0.56132 0.45189 1.0132 1.0132 1.0132h15.787c0.56133 0 1.0132-0.4519 1.0132-1.0132v-15.787c0-0.56132-0.45189-1.0132-1.0132-1.0132h-7.8397z" fill="#fff"/>
+<path d="m61.44 152.53c-0.56133 0-1.0132 0.4519-1.0132 1.0132v2.8101h17.814v-2.8101c0-0.56132-0.45189-1.0132-1.0132-1.0132h-7.8397z" fill="#0038b8" style="paint-order:markers fill stroke"/>
+<path d="m61.44 170.35c-0.56133 0-1.0132-0.45189-1.0132-1.0132v-2.8101h17.814v2.8101c0 0.56133-0.45189 1.0132-1.0132 1.0132h-7.8397z" fill="#0038b8" style="paint-order:markers fill stroke"/>
+</g>
+<path transform="matrix(.25048 0 0 .25048 34.788 114.74)" d="m69.338 157.99-0.99432 1.7189-1.5857 1e-3 -0.41288 3.4e-4 0.99879 1.7267-0.99879 1.7267 0.41288 3.4e-4 1.5857 1e-3 0.99432 1.7189 0.98962-1.7173 1.9948 2e-3 -0.99786-1.7316 0.99786-1.7315-1.9947 2e-3zm-8.85e-4 0.95322 0.44066 0.76459-0.88332 6.8e-4zm2.1602 1.2398-0.44773 0.77693-0.44732-0.77618zm-1.4449 1e-3 0.72215 1.253-0.72215 1.2531-1.4337-1e-3 -0.72415-1.2519 0.72415-1.2519zm-1.9845 2e-3 -0.44862 0.77557-0.4482-0.77483zm-0.44857 1.7274 0.44866 0.77563-0.89691-6.8e-4zm3.4303 1e-3 0.44773 0.77692-0.89505-6.8e-4zm-2.1551 1.2515 0.88337 6.8e-4 -0.44066 0.76464z" color="#000000" color-rendering="auto" dominant-baseline="auto" fill="#0038b8" image-rendering="auto" shape-rendering="auto" solid-color="#000000" style="font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;isolation:auto;mix-blend-mode:normal;paint-order:markers fill stroke;shape-padding:0;text-decoration-color:#000000;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;white-space:normal"/>
+</g>
+</g>
 </svg>
