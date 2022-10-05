@@ -11,7 +11,12 @@ const db = new Database(dbPath);
 const getArticleById = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE guid = ?").get(id);
 const getTalkbackByArticleGuid = (guid: string) =>
-	db.prepare("SELECT * FROM talkbacks WHERE articleGUID = ?").all(guid);
+	db
+		.prepare(
+			`SELECT * FROM talkbacks
+			WHERE articleGUID = ? and parentID is NULL;`
+		)
+		.all(guid);
 const getArticleByRowid = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
 const articlesMaxRowid = () =>
