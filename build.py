@@ -4,7 +4,7 @@ from fnmatch import fnmatch
 from glob import glob
 import shutil
 import argparse
-from subprocess import run
+from subprocess import Popen, run, DEVNULL
 from typing import List
 
 
@@ -69,6 +69,8 @@ def deploy():
     # install scraper
     run(['ssh', 'root@172.104.236.178', 'cd',
         '/root/news-scraper/scraper', ';', 'npm', 'ci'])
+    Popen(['ssh', 'root@172.104.236.178', 'cd',
+           '/root/news-scraper/scraper', ';', 'node', 'scraper.js'], stdout=DEVNULL)
 
     # install server
     run(['ssh', 'root@172.104.236.178', 'cd',
