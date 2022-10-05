@@ -16,6 +16,8 @@ appendFileSync(
 
 const db = new Database(path.join(__dirname, "db.db"));
 
+db.prepare("PRAGMA recursive_triggers = true").run();
+
 db.prepare(
 	`CREATE TABLE IF NOT EXISTS articles (
 	id INTEGER PRIMARY KEY,
@@ -41,6 +43,18 @@ db.prepare(
         parentID INTEGER,
         articleGUID NOT NULL
 )`
+).run();
+
+db.prepare(
+	`CREATE TRIGGER IF NOT EXISTS replace_talkbacks
+	AFTER DELETE
+	ON talkbacks
+	FOR EACH ROW
+	BEGIN
+		UPDATE talkbacks
+		SET id = old.id
+		WHERE id = (SELECT MAX(id) FROM talkbacks);
+	END;`
 ).run();
 
 const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
