@@ -41,7 +41,8 @@ db.prepare(
         positive,
         negative,
         parentID INTEGER,
-        articleGUID NOT NULL
+		articleGUID,
+		FOREIGN KEY(articleGUID) REFERENCES articles(guid)
 )`
 ).run();
 
@@ -91,7 +92,12 @@ const insertTalkbacks = db.transaction((talkbacks: DBTalkback[]) => {
 	for (const talkback of talkbacks) {
 		if (!talkback.title) talkback.title = null;
 		if (!talkback.parentID) talkback.parentID = null;
-		const { positive: _p, negative: _n, ...noLikesTalkback } = talkback;
+		const {
+			positive: _p,
+			negative: _n,
+			parentID: _pa,
+			...noLikesTalkback
+		} = talkback;
 		const obj_hash = hash(noLikesTalkback);
 		talkback.hash = obj_hash;
 		const id = insertTalkback.run(talkback).lastInsertRowid;
