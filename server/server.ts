@@ -10,7 +10,7 @@ const dbPath = isDeployed
 const db = new Database(dbPath);
 const getArticleById = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE guid = ?").get(id);
-const getTalkbackByArticleGuid = (guid: string) =>
+const getTalkbacksByArticleGuid = (guid: string) =>
 	db
 		.prepare(
 			`SELECT * FROM talkbacks
@@ -19,6 +19,11 @@ const getTalkbackByArticleGuid = (guid: string) =>
 		.all(guid);
 const getArticleByRowid = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
+const getArticlesGuidRandomOrder = (): string[] =>
+	db
+		.prepare("select DISTINCT articleGUID from talkbacks ORDER by random()")
+		.pluck()
+		.all();
 const articlesMaxRowid = () =>
 	db.prepare("SELECT max(rowid) FROM articles").get()["max(rowid)"];
 const getTalkbackByRowid = (id: string) =>
@@ -34,7 +39,7 @@ function getRandomNumbers(max: number, amount: number) {
 	return numArr;
 }
 
-function sampleRandom<T>(arr: T[], amount: number) {
+function sampleRandom<T>(arr: T[], amount: number = 1) {
 	if (amount < 0) amount = 1;
 	const resArr: T[] = Array(Math.min(amount, arr.length));
 	for (let i = 0; i < amount && arr.length; i++) {
@@ -52,24 +57,17 @@ app.use(express.static(STATIC_PATH));
 
 app.get("/random/talkback/", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
-	const maxRowid = talkbacksMaxRowid();
-	const rowidArr = getRandomNumbers(maxRowid, amount);
 	const talkbacks = Array(amount);
-	for (let i = 0; i < rowidArr.length; i++) {
-		let talkback = getTalkbackByRowid(rowidArr[i]);
-		let retries = 0;
-		while (!talkback || (!talkback.parentID && retries < 5)) {
-			retries++;
-			talkback = getTalkbackByRowid(getRandomNumbers(maxRowid, 1)[0]);
-		}
-		talkbacks[i] = talkback;
-	}
+	const guidArr = getArticlesGuidRandomOrder();
+
+	for (let i = 0; i < talkbacks.length && guidArr.length; i++)
+		talkbacks[i] = sampleRandom(getTalkbacksByArticleGuid(guidArr.pop()!))[0];
 	res.json(talkbacks);
 });
 
 app.get("/random/talkback/:guid", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
-	const talkbacks = getTalkbackByArticleGuid(req.params.guid);
+	const talkbacks = getTalkbacksByArticleGuid(req.params.guid);
 	res.json(sampleRandom(talkbacks, amount));
 });
 
