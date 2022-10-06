@@ -43,6 +43,7 @@ db.prepare(
         negative,
         parentID INTEGER,
 		articleGUID,
+		mainTopic,
 		FOREIGN KEY(articleGUID) REFERENCES articles(guid)
 )`
 ).run();
@@ -68,7 +69,8 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     positive,
     negative,
     parentID,
-    articleGUID
+    articleGUID,
+	mainTopic
 ) VALUES (
     @hash,
     @writer,
@@ -78,7 +80,8 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     @positive,
     @negative,
     @parentID,
-    @articleGUID
+    @articleGUID,
+	@mainTopic
 )`);
 
 export interface DBTalkback extends Talkback {
@@ -87,6 +90,7 @@ export interface DBTalkback extends Talkback {
 	parentID?: number | bigint | null;
 	children: DBTalkback[];
 	articleGUID: string;
+	mainTopic: string;
 }
 
 const insertTalkbacks = db.transaction((talkbacks: DBTalkback[]) => {
@@ -102,6 +106,12 @@ const insertTalkbacks = db.transaction((talkbacks: DBTalkback[]) => {
 		} = talkback;
 		const obj_hash = hash(noLikesTalkback);
 		talkback.hash = obj_hash;
+
+		let max: [number, string][] = getTopic(
+			(talkback.title + " " + talkback.content).split(" ")
+		);
+		talkback.mainTopic = JSON.stringify(max.map((i) => i[1]));
+
 		const id = insertTalkback.run(talkback).lastInsertRowid;
 		if (talkback.children.length) {
 			insertTalkbacks(
@@ -130,22 +140,14 @@ const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
         @content,
         @contentSnippet,
 		@mainTopic)`);
-
+let frequencyMap: Map<string, number>;
 const insertArticles = db.transaction((articles: Article[]) => {
-	const frequencyMap = frequentWord(articles);
+	frequencyMap = frequentWord(articles);
 	for (const article of articles) {
-		const articleFrequencyMap = Array.from(
-			frequentWord(article.title.split(" ")).keys()
-		).map((word): [number, string] => [frequencyMap.get(word)!, word]);
-		let max: [number, string][] = [[0, ""]];
-		let min: [number, string][] = [[Infinity, ""]];
-		for (const pair of articleFrequencyMap) {
-			if (max[0][0] < pair[0]) max = [pair];
-			else if (max[0][0] === pair[0]) max.push(pair);
-			if (min[0][0] > pair[0]) min = [pair];
-			else if (min[0][0] === pair[0]) min.push(pair);
-		}
-		article.mainTopic = JSON.stringify(max.concat(min).map((i) => i[1]));
+		let max: [number, string][] = getTopic(
+			(article.contentSnippet + " " + article.title).split(" ")
+		);
+		article.mainTopic = JSON.stringify(max.map((i) => i[1]));
 
 		insertArticle.run(article);
 		const addGUID = (item: Talkback): DBTalkback => {
@@ -157,6 +159,18 @@ const insertArticles = db.transaction((articles: Article[]) => {
 		insertTalkbacks(article.talkbacks.map(addGUID));
 	}
 });
+
+function getTopic(words: string[]) {
+	const itemFrequencyMap = Array.from(frequentWord(words).keys()).map(
+		(word): [number, string] => [frequencyMap.get(word)!, word]
+	);
+	let max: [number, string][] = [[0, ""]];
+	for (const pair of itemFrequencyMap) {
+		if (max[0][0] < pair[0]) max = [pair];
+		else if (max[0][0] === pair[0]) max.push(pair);
+	}
+	return max;
+}
 
 async function poolPromises<T>(
 	fns: (() => Promise<T>)[],
@@ -183,6 +197,7 @@ const ignoreWords = readFileSync("ignorewords.txt", {
 
 function frequentWord(data: Article[] | string[]): Map<string, number> {
 	const wordMap = new Map<string, number>();
+	const secondTryWords = new Set<string>();
 	for (const item of data) {
 		if (typeof item === "string") {
 			countWords([item]);
@@ -197,14 +212,27 @@ function frequentWord(data: Article[] | string[]): Map<string, number> {
 			);
 		}
 	}
+	countWords(secondTryWords);
 	return wordMap;
 
-	function countWords(words: string[]) {
+	function countWords(
+		words: string[] | Set<string>,
+		secondTry: boolean = false
+	) {
 		for (let word of words) {
 			//filter words
-			word = word.replace(/[^א-ת]/g, "");
-			if (!word || word.length < 2) continue;
-			if (ignoreWords.includes(word)) continue;
+			if (!secondTry) {
+				word = word.replace(/[^א-ת]/g, "");
+				if (!word || word.length < 2) continue;
+				if (ignoreWords.includes(word)) continue;
+				if (["ה", "ל", "ב", "ו", "ש"].includes(word.slice(1))) {
+					secondTryWords.add(word);
+					continue;
+				}
+			} else {
+				const temp = word.slice(1);
+				if (wordMap.has(temp)) word = temp;
+			}
 
 			const currNum = wordMap.get(word) ?? 0;
 			wordMap.set(word, currNum + 1);
