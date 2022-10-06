@@ -96,6 +96,7 @@ const insertTalkbacks = db.transaction((talkbacks: DBTalkback[]) => {
 			positive: _p,
 			negative: _n,
 			parentID: _pa,
+			children: _c,
 			...noLikesTalkback
 		} = talkback;
 		const obj_hash = hash(noLikesTalkback);
