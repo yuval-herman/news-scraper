@@ -51,7 +51,7 @@ def build():
 def deploy():
     # scraper
     copyDir('scraper/dist', 'deploy/scraper')
-    copyFiles(['scraper/package.json', 'scraper/package-lock.json'],
+    copyFiles(['scraper/package.json', 'scraper/package-lock.json', 'scraper/ignorewords.txt'],
               'deploy/scraper')
 
     # server
