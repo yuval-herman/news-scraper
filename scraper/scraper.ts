@@ -1,13 +1,13 @@
+import Database from "better-sqlite3";
+import { appendFileSync, readFileSync } from "fs";
 import hash from "object-hash";
-import { appendFileSync, writeFileSync } from "fs";
+import path from "path";
+import { Article, Talkback } from "./news-providers/base";
+import { getInn } from "./news-providers/inn";
 import { getMako } from "./news-providers/mako";
+import { getNow14 } from "./news-providers/now14";
 import { getWalla } from "./news-providers/walla";
 import { getYnet } from "./news-providers/ynet";
-import Database from "better-sqlite3";
-import { Article, Talkback } from "./news-providers/base";
-import path from "path";
-import { getInn } from "./news-providers/inn";
-import { getNow14 } from "./news-providers/now14";
 
 appendFileSync(
 	path.join(__dirname, "scraper-log.log"),
@@ -26,7 +26,8 @@ db.prepare(
    	link,
     pubDate,
     content,
-    contentSnippet
+    contentSnippet,
+	mainTopic
 )`
 ).run();
 
@@ -119,17 +120,33 @@ const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
     link,
     pubDate,
     content,
-    contentSnippet
+    contentSnippet,
+	mainTopic
     ) VALUES (
         @guid,
         @title,
         @link,
         @pubDate,
         @content,
-        @contentSnippet)`);
+        @contentSnippet,
+		@mainTopic)`);
 
 const insertArticles = db.transaction((articles: Article[]) => {
+	const frequencyMap = frequentWord(articles);
 	for (const article of articles) {
+		const articleFrequencyMap = Array.from(
+			frequentWord(article.title.split(" ")).keys()
+		).map((word): [number, string] => [frequencyMap.get(word)!, word]);
+		let max: [number, string][] = [[0, ""]];
+		let min: [number, string][] = [[Infinity, ""]];
+		for (const pair of articleFrequencyMap) {
+			if (max[0][0] < pair[0]) max = [pair];
+			else if (max[0][0] === pair[0]) max.push(pair);
+			if (min[0][0] > pair[0]) min = [pair];
+			else if (min[0][0] === pair[0]) min.push(pair);
+		}
+		article.mainTopic = JSON.stringify(max.concat(min).map((i) => i[1]));
+
 		insertArticle.run(article);
 		const addGUID = (item: Talkback): DBTalkback => {
 			(item as DBTalkback).articleGUID = article.guid;
@@ -159,6 +176,41 @@ async function poolPromises<T>(
 poolPromises([getYnet, getMako, getWalla, getInn, getNow14], 4).then((res) =>
 	insertArticles(res.flat())
 );
+
+const ignoreWords = readFileSync("ignorewords.txt", {
+	encoding: "utf-8",
+}).split("\n");
+
+function frequentWord(data: Article[] | string[]): Map<string, number> {
+	const wordMap = new Map<string, number>();
+	for (const item of data) {
+		if (typeof item === "string") {
+			countWords([item]);
+			continue;
+		}
+		countWords(item.title.split(" ").concat(item.contentSnippet.split(" ")));
+		for (const talkback of item.talkbacks) {
+			countWords(
+				talkback.content
+					.split(" ")
+					.concat((talkback.title ?? "").split(" "))
+			);
+		}
+	}
+	return wordMap;
+
+	function countWords(words: string[]) {
+		for (let word of words) {
+			//filter words
+			word = word.replace(/[^א-ת]/g, "");
+			if (!word || word.length < 2) continue;
+			if (ignoreWords.includes(word)) continue;
+
+			const currNum = wordMap.get(word) ?? 0;
+			wordMap.set(word, currNum + 1);
+		}
+	}
+}
 
 appendFileSync(
 	path.join(__dirname, "scraper-log.log"),
