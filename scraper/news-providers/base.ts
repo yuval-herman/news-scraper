@@ -17,6 +17,7 @@ export interface Article {
 	pubDate: string;
 	content: string;
 	contentSnippet: string;
+	mainTopic?: string;
 	talkbacks: Talkback[];
 }
 
@@ -24,7 +25,7 @@ export async function getRssWithTalkbacks(
 	rssURL: string,
 	extractID: (item: Article) => string,
 	getTalkbacks: (id: string) => Promise<Talkback[]>
-) {
+): Promise<Article[]> {
 	const parser = new Parser();
 	let feed;
 	try {
