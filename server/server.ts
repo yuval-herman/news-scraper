@@ -19,11 +19,17 @@ const getTalkbacksByArticleGuid = (guid: string) =>
 		.all(guid);
 const getArticleByRowid = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
-const getArticlesGuidRandomOrder = (): string[] =>
-	db
-		.prepare("select DISTINCT articleGUID from talkbacks ORDER by random()")
-		.pluck()
-		.all();
+const getArticlesGuidRandomOrder = (topic?: string): string[] => {
+	const statement = db
+		.prepare(
+			`select DISTINCT articleGUID from talkbacks ${
+				topic ? "where mainTopic = ?" : ""
+			} ORDER by random()`
+		)
+		.pluck();
+	if (topic) return statement.all(topic);
+	return statement.all();
+};
 const articlesMaxRowid = () =>
 	db.prepare("SELECT max(rowid) FROM articles").get()["max(rowid)"];
 const getTalkbackByRowid = (id: string) =>
@@ -57,8 +63,10 @@ app.use(express.static(STATIC_PATH));
 
 app.get("/random/talkback/", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
+	const topic = req.query.topic?.toString();
 	const talkbacks = Array(amount);
-	const guidArr = getArticlesGuidRandomOrder();
+	let guidArr = getArticlesGuidRandomOrder(topic);
+	if (!guidArr.length) guidArr = getArticlesGuidRandomOrder();
 
 	for (let i = 0; i < talkbacks.length && guidArr.length; i++)
 		talkbacks[i] = sampleRandom(getTalkbacksByArticleGuid(guidArr.pop()!))[0];
