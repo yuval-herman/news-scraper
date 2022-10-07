@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-import { appendFileSync, readFileSync } from "fs";
+import { appendFileSync } from "fs";
 import hash from "object-hash";
 import path from "path";
 import { Article, Talkback } from "./news-providers/base";
@@ -43,7 +43,6 @@ db.prepare(
         negative,
         parentID INTEGER,
 		articleGUID,
-		mainTopic,
 		FOREIGN KEY(articleGUID) REFERENCES articles(guid)
 )`
 ).run();
@@ -69,8 +68,7 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     positive,
     negative,
     parentID,
-    articleGUID,
-	mainTopic
+    articleGUID
 ) VALUES (
     @hash,
     @writer,
@@ -80,8 +78,7 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     @positive,
     @negative,
     @parentID,
-    @articleGUID,
-	@mainTopic
+    @articleGUID
 )`);
 
 export interface DBTalkback extends Talkback {
@@ -106,12 +103,6 @@ const insertTalkbacks = db.transaction((talkbacks: DBTalkback[]) => {
 		} = talkback;
 		const obj_hash = hash(noLikesTalkback);
 		talkback.hash = obj_hash;
-
-		let max: [number, string][] = getTopic(
-			(talkback.title + " " + talkback.content).split(" ")
-		);
-		talkback.mainTopic = JSON.stringify(max.map((i) => i[1]));
-
 		const id = insertTalkback.run(talkback).lastInsertRowid;
 		if (talkback.children.length) {
 			insertTalkbacks(
@@ -140,36 +131,94 @@ const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
         @content,
         @contentSnippet,
 		@mainTopic)`);
-let frequencyMap: Map<string, number>;
-const insertArticles = db.transaction((articles: Article[]) => {
-	frequencyMap = frequentWord(articles);
-	for (const article of articles) {
-		let max: [number, string][] = getTopic(
-			(article.contentSnippet + " " + article.title).split(" ")
-		);
-		article.mainTopic = JSON.stringify(max.map((i) => i[1]));
 
-		insertArticle.run(article);
-		const addGUID = (item: Talkback): DBTalkback => {
-			(item as DBTalkback).articleGUID = article.guid;
-			for (let i = 0; i < item.children.length; i++)
-				addGUID(item.children[i]);
-			return item as DBTalkback;
-		};
-		insertTalkbacks(article.talkbacks.map(addGUID));
+const insertArticles = async (articles: Article[]) => {
+	for (let i = 0; i < articles.length; i++) {
+		try {
+			const topics = await getTopics(
+				articles[i].title,
+				articles[i].contentSnippet
+			);
+			articles[i].mainTopic = JSON.stringify(topics);
+		} catch {
+			continue;
+		}
 	}
-});
+	db.transaction((articles: Article[]) => {
+		for (const article of articles) {
+			insertArticle.run(article);
+			const addGUID = (item: Talkback): DBTalkback => {
+				(item as DBTalkback).articleGUID = article.guid;
+				for (let i = 0; i < item.children.length; i++)
+					addGUID(item.children[i]);
+				return item as DBTalkback;
+			};
+			insertTalkbacks(article.talkbacks.map(addGUID));
+		}
+	})(articles);
+};
 
-function getTopic(words: string[]) {
-	const itemFrequencyMap = Array.from(frequentWord(words).keys()).map(
-		(word): [number, string] => [frequencyMap.get(word)!, word]
-	);
-	let max: [number, string][] = [[0, ""]];
-	for (const pair of itemFrequencyMap) {
-		if (max[0][0] < pair[0]) max = [pair];
-		else if (max[0][0] === pair[0]) max.push(pair);
+interface NemoMorph {
+	text: string;
+	label: string;
+	start: number;
+	end: number;
+}
+
+interface Morph {
+	nemo_morph: NemoMorph[];
+}
+
+interface Ents {
+	morph: Morph;
+}
+
+interface Morph2 {
+	form: string;
+	nemo_morph: string;
+	lemma: string;
+	pos: string;
+	feats: string;
+}
+
+interface Token {
+	text: string;
+	morphs: Morph2[];
+}
+
+interface NEMOBase {
+	text: string;
+	ents: Ents;
+	tokens: Token[];
+}
+
+type NEMOResponse = NEMOBase[];
+
+async function getTopics(content: string, backup?: string): Promise<string[]> {
+	content = content.replace(/[^א-ת ":,\n]/g, "");
+	const res = (await (
+		await fetch(
+			"http://localhost:8090/morph_hybrid?multi_model_name=token-multi&morph_model_name=morph&align_tokens=false&verbose=0&include_yap_outputs=false",
+			{
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					sentences: content,
+					tokenized: false,
+				}),
+				method: "POST",
+			}
+		)
+	).json()) as NEMOResponse;
+	let topics = res
+		.map((line) => line.ents.morph.nemo_morph.map((morph) => morph.text))
+		.flat();
+
+	if (!topics.length && backup) {
+		return getTopics(backup);
 	}
-	return max;
+	return topics;
 }
 
 async function poolPromises<T>(
@@ -190,55 +239,6 @@ async function poolPromises<T>(
 poolPromises([getYnet, getMako, getWalla, getInn, getNow14], 4).then((res) =>
 	insertArticles(res.flat())
 );
-
-const ignoreWords = readFileSync("ignorewords.txt", {
-	encoding: "utf-8",
-}).split("\n");
-
-function frequentWord(data: Article[] | string[]): Map<string, number> {
-	const wordMap = new Map<string, number>();
-	const secondTryWords = new Set<string>();
-	for (const item of data) {
-		if (typeof item === "string") {
-			countWords([item]);
-			continue;
-		}
-		countWords(item.title.split(" ").concat(item.contentSnippet.split(" ")));
-		for (const talkback of item.talkbacks) {
-			countWords(
-				talkback.content
-					.split(" ")
-					.concat((talkback.title ?? "").split(" "))
-			);
-		}
-	}
-	countWords(secondTryWords);
-	return wordMap;
-
-	function countWords(
-		words: string[] | Set<string>,
-		secondTry: boolean = false
-	) {
-		for (let word of words) {
-			//filter words
-			if (!secondTry) {
-				word = word.replace(/[^א-ת]/g, "");
-				if (!word || word.length < 2) continue;
-				if (ignoreWords.includes(word)) continue;
-				if (["ה", "ל", "ב", "ו", "ש"].includes(word.slice(1))) {
-					secondTryWords.add(word);
-					continue;
-				}
-			} else {
-				const temp = word.slice(1);
-				if (wordMap.has(temp)) word = temp;
-			}
-
-			const currNum = wordMap.get(word) ?? 0;
-			wordMap.set(word, currNum + 1);
-		}
-	}
-}
 
 appendFileSync(
 	path.join(__dirname, "scraper-log.log"),
