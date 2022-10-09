@@ -24,6 +24,7 @@ parser.add_argument('action',
                     choices=Actions._member_names_,
                     default='build',
                     help='action to preform (default: build)')
+parser.add_argument('-n', action='store_true', help='start NEMO in dev mode')
 
 args = parser.parse_args()
 
@@ -102,8 +103,9 @@ def dev():
     processes.append(Popen(['npx', 'tsc'], cwd='scraper'))
 
     # NEMO
-    processes.append(
-        Popen(['docker', 'compose', 'up', '--remove-orphans', '-d'], cwd='NEMO'))
+    if args.n:
+        processes.append(
+            Popen(['docker', 'compose', 'up', '--remove-orphans', '-d'], cwd='NEMO'))
 
     # news-game
     processes.append(Popen(['npm', 'start'], cwd='news-game'))
@@ -126,7 +128,7 @@ elif args.action == Actions.fetch.name:
     print("fetching db")
     fetch()
 elif args.action == Actions.dev.name:
-    if os.geteuid() != 0:
+    if os.geteuid() != 0 and args.n:
         exit("You need to have root privileges to run this script.\nPlease try again, this time using 'sudo'. Exiting.")
 
     print("start dev_env\nhit ctrl + c to stop")
