@@ -158,38 +158,30 @@ const insertArticles = async (articles: Article[]) => {
 	})(articles);
 };
 
-interface NemoMorph {
+export interface NemoMultiAlignToken {
 	text: string;
 	label: string;
 	start: number;
 	end: number;
 }
 
-interface Morph {
-	nemo_morph: NemoMorph[];
+export interface Token {
+	nemo_multi_align_token: NemoMultiAlignToken[];
 }
 
-interface Ents {
-	morph: Morph;
+export interface Ents {
+	token: Token;
 }
 
-interface Morph2 {
-	form: string;
-	nemo_morph: string;
-	lemma: string;
-	pos: string;
-	feats: string;
-}
-
-interface Token {
+export interface Token2 {
 	text: string;
-	morphs: Morph2[];
+	nemo_multi_align_token: string;
 }
 
-interface NEMOBase {
+export interface NEMOBase {
 	text: string;
 	ents: Ents;
-	tokens: Token[];
+	tokens: Token2[];
 }
 
 type NEMOResponse = NEMOBase[];
@@ -198,7 +190,7 @@ async function getTopics(content: string, backup?: string): Promise<string[]> {
 	content = content.replace(/[^א-ת ":,\n]/g, "");
 	const res = (await (
 		await fetch(
-			"http://localhost:8090/morph_hybrid?multi_model_name=token-multi&morph_model_name=morph&align_tokens=false&verbose=0&include_yap_outputs=false",
+			"http://localhost:8090/multi_to_single?multi_model_name=token-multi&verbose=0",
 			{
 				headers: {
 					"Content-Type": "application/json",
@@ -211,9 +203,15 @@ async function getTopics(content: string, backup?: string): Promise<string[]> {
 			}
 		)
 	).json()) as NEMOResponse;
-	let topics = res
-		.map((line) => line.ents.morph.nemo_morph.map((morph) => morph.text))
-		.flat();
+	let topics = [
+		...new Set(
+			res
+				.map((line) =>
+					line.ents.token.nemo_multi_align_token.map((token) => token.text)
+				)
+				.flat()
+		),
+	];
 
 	if (!topics.length && backup) {
 		return getTopics(backup);
