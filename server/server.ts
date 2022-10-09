@@ -17,18 +17,28 @@ const getTalkbacksByArticleGuid = (guid: string) =>
 			WHERE articleGUID = ? and parentID is NULL;`
 		)
 		.all(guid);
+
+const getTalkbacksByTopic = (topics: string[]) => {
+	const data: { mainTopic: string }[] = db
+		.prepare(
+			`SELECT * from talkbacks
+		where mainTopic != '[]' ORDER by random()`
+		)
+		.all();
+	return data.filter((item) =>
+		(JSON.parse(item.mainTopic) as string[]).some((item) =>
+			topics.includes(item)
+		)
+	);
+};
+
 const getArticleByRowid = (id: string) =>
 	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
-const getArticlesGuidRandomOrder = (topic?: string): string[] => {
-	const statement = db
-		.prepare(
-			`select DISTINCT articleGUID from talkbacks ${
-				topic ? "where mainTopic = ?" : ""
-			} ORDER by random()`
-		)
-		.pluck();
-	if (topic) return statement.all(topic);
-	return statement.all();
+const getArticlesGuidRandomOrder = (): string[] => {
+	return db
+		.prepare(`SELECT guid from articles ORDER by random()`)
+		.pluck()
+		.all();
 };
 const articlesMaxRowid = () =>
 	db.prepare("SELECT max(rowid) FROM articles").get()["max(rowid)"];
@@ -63,13 +73,25 @@ app.use(express.static(STATIC_PATH));
 
 app.get("/random/talkback/", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
-	const topic = req.query.topic?.toString();
-	const talkbacks = Array(amount);
-	let guidArr = getArticlesGuidRandomOrder(topic);
-	if (!guidArr.length) guidArr = getArticlesGuidRandomOrder();
+	const topics: string[] = JSON.parse(req.query.topics?.toString() ?? "[]");
 
-	for (let i = 0; i < talkbacks.length && guidArr.length; i++)
-		talkbacks[i] = sampleRandom(getTalkbacksByArticleGuid(guidArr.pop()!))[0];
+	const talkbacks = Array(amount);
+	let guidArr = getArticlesGuidRandomOrder();
+	let selection;
+	if (topics.length) {
+		selection = getTalkbacksByTopic(topics);
+	}
+
+	for (let i = 0; i < talkbacks.length && guidArr.length; i++) {
+		talkbacks[i] = sampleRandom(
+			selection || getTalkbacksByArticleGuid(guidArr.pop()!)
+		)[0];
+		while (!talkbacks[i]) {
+			talkbacks[i] = sampleRandom(
+				getTalkbacksByArticleGuid(guidArr.pop()!)
+			)[0];
+		}
+	}
 	res.json(talkbacks);
 });
 
