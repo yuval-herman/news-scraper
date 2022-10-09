@@ -2,6 +2,7 @@
 from enum import Enum, auto
 from fnmatch import fnmatch
 from glob import glob
+import os
 import shutil
 import argparse
 from subprocess import Popen, run, DEVNULL
@@ -100,6 +101,10 @@ def dev():
     # scraper
     processes.append(Popen(['npx', 'tsc'], cwd='scraper'))
 
+    # NEMO
+    processes.append(
+        Popen(['docker', 'compose', 'up', '--remove-orphans', '-d'], cwd='NEMO'))
+
     # news-game
     processes.append(Popen(['npm', 'start'], cwd='news-game'))
 
@@ -121,5 +126,8 @@ elif args.action == Actions.fetch.name:
     print("fetching db")
     fetch()
 elif args.action == Actions.dev.name:
+    if os.geteuid() != 0:
+        exit("You need to have root privileges to run this script.\nPlease try again, this time using 'sudo'. Exiting.")
+
     print("start dev_env\nhit ctrl + c to stop")
     dev()
