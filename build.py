@@ -6,6 +6,7 @@ import shutil
 import argparse
 from subprocess import Popen, run, DEVNULL
 from typing import List
+import signal
 
 
 class Actions(Enum):
@@ -13,6 +14,7 @@ class Actions(Enum):
     deploy = auto()
     bDeploy = auto()
     fetch = auto()
+    dev = auto()
 
 
 parser = argparse.ArgumentParser(description='Build project')
@@ -83,6 +85,27 @@ def fetch():
     run(['scp', 'root@172.104.236.178:/root/news-scraper/scraper/db.db', 'remoteDB.db'])
 
 
+def dev():
+    processes: List[Popen] = []
+
+    def hanlde_sigint(sig, frame):
+        for process in processes:
+            process.terminate()
+
+    signal.signal(signal.SIGINT, hanlde_sigint)
+    # server
+    processes.append(Popen(['npx', 'tsc'], cwd='server'))
+    processes.append(Popen(['npx', 'nodemon', 'dist/server.js'], cwd='server'))
+
+    # scraper
+    processes.append(Popen(['npx', 'tsc'], cwd='scraper'))
+
+    # news-game
+    processes.append(Popen(['npm', 'start'], cwd='news-game'))
+
+    signal.pause()
+
+
 if args.action == Actions.build.name:
     print('building')
     build()
@@ -97,3 +120,6 @@ elif args.action == Actions.bDeploy.name:
 elif args.action == Actions.fetch.name:
     print("fetching db")
     fetch()
+elif args.action == Actions.dev.name:
+    print("start dev_env\nhit ctrl + c to stop")
+    dev()
