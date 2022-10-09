@@ -41,7 +41,8 @@ db.prepare(
         createDate,
         positive,
         negative,
-        parentID INTEGER,
+		parentID INTEGER,
+		mainTopic,
 		articleGUID,
 		FOREIGN KEY(articleGUID) REFERENCES articles(guid)
 )`
@@ -68,6 +69,7 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     positive,
     negative,
     parentID,
+	mainTopic,
     articleGUID
 ) VALUES (
     @hash,
@@ -78,6 +80,7 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     @positive,
     @negative,
     @parentID,
+	@mainTopic,
     @articleGUID
 )`);
 
@@ -90,30 +93,43 @@ export interface DBTalkback extends Talkback {
 	mainTopic: string;
 }
 
-const insertTalkbacks = db.transaction((talkbacks: DBTalkback[]) => {
-	for (const talkback of talkbacks) {
-		if (!talkback.title) talkback.title = null;
-		if (!talkback.parentID) talkback.parentID = null;
-		const {
-			positive: _p,
-			negative: _n,
-			parentID: _pa,
-			children: _c,
-			...noLikesTalkback
-		} = talkback;
-		const obj_hash = hash(noLikesTalkback);
-		talkback.hash = obj_hash;
-		const id = insertTalkback.run(talkback).lastInsertRowid;
-		if (talkback.children.length) {
-			insertTalkbacks(
-				talkback.children.map((item) => {
-					item.parentID = id;
-					return item;
-				})
+const insertTalkbacks = async (talkbacks: DBTalkback[]) => {
+	for (let i = 0; i < talkbacks.length; i++) {
+		try {
+			const topics = await getTopics(
+				talkbacks[i].content,
+				talkbacks[i].title ?? undefined
 			);
+			talkbacks[i].mainTopic = JSON.stringify(topics);
+		} catch {
+			talkbacks[i].mainTopic = "[]";
 		}
 	}
-});
+	db.transaction((talkbacks: DBTalkback[]) => {
+		for (const talkback of talkbacks) {
+			if (!talkback.title) talkback.title = null;
+			if (!talkback.parentID) talkback.parentID = null;
+			const {
+				positive: _p,
+				negative: _n,
+				parentID: _pa,
+				children: _c,
+				...noLikesTalkback
+			} = talkback;
+			const obj_hash = hash(noLikesTalkback);
+			talkback.hash = obj_hash;
+			const id = insertTalkback.run(talkback).lastInsertRowid;
+			if (talkback.children.length) {
+				insertTalkbacks(
+					talkback.children.map((item) => {
+						item.parentID = id;
+						return item;
+					})
+				);
+			}
+		}
+	})(talkbacks);
+};
 
 const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
     guid,
@@ -141,7 +157,7 @@ const insertArticles = async (articles: Article[]) => {
 			);
 			articles[i].mainTopic = JSON.stringify(topics);
 		} catch {
-			continue;
+			articles[i].mainTopic = "[]";
 		}
 	}
 	db.transaction((articles: Article[]) => {
