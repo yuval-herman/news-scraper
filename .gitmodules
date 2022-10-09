@@ -1,0 +1,3 @@
+[submodule "NEMO"]
+	path = NEMO
+	url = https://github.com/OnlpLab/NEMO.git
