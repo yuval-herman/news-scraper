@@ -11,6 +11,8 @@ This is a barebones express server. It's only use is static serving (hopefully t
 a couple of simple endpoints to gather data from the scraper DB.
 
 ## News Game
+[Live site here](https://news.shavzak.com)
+
 This is the client side of the project. This site was designed with a mobile first layout in mind. It contains a simple game based on the scraper DB.
 The game goes as follows; it shows the player a random article from the scraper DB and 4 random talkbacks as well.
 One of the talkbacks was posted on the actual article and the players job is to guess which one.
