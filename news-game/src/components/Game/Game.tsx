@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Article as ArticleType } from "../../../../scraper/news-providers/base";
-import { DBTalkback } from "../../../../scraper/scraper";
+import { Article as ArticleType } from "../../../../common/types";
+import { DBTalkback } from "../../../../common/types";
 import Article from "../Article/Article";
 import Talkback from "../Talkback/Talkback";
 import style from "./Game.module.scss";

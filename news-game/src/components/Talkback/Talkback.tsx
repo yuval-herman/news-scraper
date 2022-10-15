@@ -1,5 +1,5 @@
 import { MouseEvent, useEffect, useState } from "react";
-import { DBTalkback } from "../../../../scraper/scraper";
+import { DBTalkback } from "../../../../common/types";
 import style from "./Talkback.module.scss";
 
 interface Props {

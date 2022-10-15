@@ -1,4 +1,4 @@
-import { Article as ArticleType } from "../../../../scraper/news-providers/base";
+import { Article as ArticleType } from "../../../../common/types";
 import style from "./Article.module.scss";
 
 interface Props {

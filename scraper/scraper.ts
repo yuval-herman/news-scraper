@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import { appendFileSync } from "fs";
 import hash from "object-hash";
 import path from "path";
-import { Article, Talkback } from "./news-providers/base";
+import { DBTalkback, Article, Talkback } from "../common/types";
 import { getInn } from "./news-providers/inn";
 import { getMako } from "./news-providers/mako";
 import { getNow14 } from "./news-providers/now14";
@@ -83,15 +83,6 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
 	@mainTopic,
     @articleGUID
 )`);
-
-export interface DBTalkback extends Talkback {
-	id: number | bigint;
-	hash: string;
-	parentID?: number | bigint | null;
-	children: DBTalkback[];
-	articleGUID: string;
-	mainTopic: string;
-}
 
 const insertTalkbacks = async (talkbacks: DBTalkback[]) => {
 	for (let i = 0; i < talkbacks.length; i++) {

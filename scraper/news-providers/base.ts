@@ -1,25 +1,5 @@
 import Parser from "rss-parser";
-
-export interface Talkback {
-	writer: string;
-	title?: string | null;
-	content: string;
-	createDate: string;
-	positive: number;
-	negative: number;
-	children: Talkback[];
-}
-
-export interface Article {
-	guid: string;
-	title: string;
-	link: string;
-	pubDate: string;
-	content: string;
-	contentSnippet: string;
-	mainTopic?: string;
-	talkbacks: Talkback[];
-}
+import { Article, Talkback } from "../../common/types";
 
 export async function getRssWithTalkbacks(
 	rssURL: string,
