@@ -1,51 +1,13 @@
 import express from "express";
 import path from "path";
-import Database from "better-sqlite3";
-
-const isDeployed = Boolean(process.env.NEWS_SCRAPER_DEPLOYED);
-const dbPath = isDeployed
-	? path.join(__dirname, "../scraper/db.db")
-	: path.join(__dirname, "../../scraper/dist/db.db");
-
-const db = new Database(dbPath);
-const getArticleById = (id: string) =>
-	db.prepare("SELECT * FROM articles WHERE guid = ?").get(id);
-const getTalkbacksByArticleGuid = (guid: string) =>
-	db
-		.prepare(
-			`SELECT * FROM talkbacks
-			WHERE articleGUID = ? and parentID is NULL;`
-		)
-		.all(guid);
-
-const getTalkbacksByTopic = (topics: string[]) => {
-	const data: { mainTopic: string }[] = db
-		.prepare(
-			`SELECT * from talkbacks
-		where mainTopic != '[]' ORDER by random()`
-		)
-		.all();
-	return data.filter((item) =>
-		(JSON.parse(item.mainTopic) as string[]).some((item) =>
-			topics.includes(item)
-		)
-	);
-};
-
-const getArticleByRowid = (id: string) =>
-	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
-const getArticlesGuidRandomOrder = (): string[] => {
-	return db
-		.prepare(`SELECT guid from articles ORDER by random()`)
-		.pluck()
-		.all();
-};
-const articlesMaxRowid = () =>
-	db.prepare("SELECT max(rowid) FROM articles").get()["max(rowid)"];
-const getTalkbackByRowid = (id: string) =>
-	db.prepare("SELECT * FROM talkbacks WHERE rowid = ?").get(id);
-const talkbacksMaxRowid = () =>
-	db.prepare("SELECT max(rowid) FROM talkbacks").get()["max(rowid)"];
+import {
+	getArticlesGuidRandomOrder,
+	getTalkbacksByTopic,
+	getTalkbacksByArticleGuid,
+	articlesMaxRowid,
+	getArticleByRowid,
+	getArticleById,
+} from "./db";
 
 function getRandomNumbers(max: number, amount: number) {
 	const numArr = Array(amount);
