@@ -16,7 +16,7 @@ export function getRandomNumbers(max: number, amount: number) {
  * `amount` can be bigger then `arr.length`,
  * the function is not guarantied to return the full array either way.
  * @param arr an array to sample from
- * @param amount amount of items to sample
+ * @param {number} [amount=1] amount of items to sample
  */
 export function sampleRandom<T>(arr: T[], amount: number = 1) {
 	if (amount < 0) amount = 1;

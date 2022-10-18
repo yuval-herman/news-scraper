@@ -16,6 +16,10 @@ const port = 4000;
 const STATIC_PATH = path.join(__dirname, "../../news-game");
 app.use(express.static(STATIC_PATH));
 
+/**
+ * Get amount and topics and return an array of talkbacks related to topics with `amount` length.
+ * If there are not enough talkbacks related to `topics` to satisfy `amount` random talkbacks are added.
+ */
 app.get("/random/talkback/", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
 	const topics: string[] = JSON.parse(req.query.topics?.toString() ?? "[]");
@@ -40,12 +44,18 @@ app.get("/random/talkback/", (req, res) => {
 	res.json(talkbacks);
 });
 
+/**
+ * Get amount and guid and return random talkbacks from the requested article.
+ */
 app.get("/random/talkback/:guid", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
 	const talkbacks = getTalkbacksByArticleGuid(req.params.guid);
 	res.json(sampleRandom(talkbacks, amount));
 });
 
+/**
+ * Get amount and return a random article array
+ */
 app.get("/random/article/", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
 	const rowidArr = getRandomNumbers(articlesMaxRowid(), amount);
@@ -57,6 +67,9 @@ app.get("/random/article/", (req, res) => {
 	res.json(articles);
 });
 
+/**
+ * Get id and return requested article
+ */
 app.get("/article/:id", (req, res) => {
 	const article = getArticleById(req.params.id);
 	if (!article) res.status(404).send("article not found");
