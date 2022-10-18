@@ -1,5 +1,6 @@
 import path from "path";
 import Database from "better-sqlite3";
+import { Article, DBTalkback } from "../common/types";
 
 // Db path changes after compilation, thus check if deployed to use new path
 const isDeployed = Boolean(process.env.NEWS_SCRAPER_DEPLOYED);
@@ -13,14 +14,14 @@ const db = new Database(dbPath);
  * Get article by it's guid.
  * @param guid article guid
  */
-export const getArticleById = (guid: string) =>
+export const getArticleById = (guid: string): Article =>
 	db.prepare("SELECT * FROM articles WHERE guid = ?").get(guid);
 
 /**
  * Get all talkbacks on an article by the article guid.
  * @param guid article guid
  */
-export const getTalkbacksByArticleGuid = (guid: string) =>
+export const getTalkbacksByArticleGuid = (guid: string): DBTalkback[] =>
 	db
 		.prepare(
 			`SELECT * FROM talkbacks
@@ -34,8 +35,8 @@ export const getTalkbacksByArticleGuid = (guid: string) =>
  * Get all talkbacks related to topic array shuffled randomly.
  * @param topics an array of topics to search for
  */
-export const getTalkbacksByTopic = (topics: string[]) => {
-	const data: { mainTopic: string }[] = db
+export const getTalkbacksByTopic = (topics: string[]): DBTalkback[] => {
+	const data: DBTalkback[] = db
 		.prepare(
 			`SELECT * from talkbacks
 		     where mainTopic != '[]' ORDER by random()`
@@ -51,7 +52,7 @@ export const getTalkbacksByTopic = (topics: string[]) => {
  * Get a article by it's rowid in the db.
  * @param id sqlite rowid
  */
-export const getArticleByRowid = (id: string) =>
+export const getArticleByRowid = (id: number | bigint): Article =>
 	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
 
 /**
@@ -67,20 +68,20 @@ export const getArticlesGuidRandomOrder = (): string[] => {
 /**
  * Get articles biggest rowid.
  */
-export const articlesMaxRowid = () =>
+export const articlesMaxRowid = (): number | bigint =>
 	db.prepare("SELECT max(rowid) FROM articles").get()["max(rowid)"];
 
 /**
  * Get talkback by it's rowid.
  * @param id talkback rowid
  */
-export const getTalkbackByRowid = (id: string) =>
+export const getTalkbackByRowid = (id: string): DBTalkback =>
 	db.prepare("SELECT * FROM talkbacks WHERE rowid = ?").get(id);
 
 /**
  * Get talkbacks biggest rowid.
  */
-export const talkbacksMaxRowid = () =>
+export const talkbacksMaxRowid = (): number | bigint =>
 	db.prepare("SELECT max(rowid) FROM talkbacks").get()["max(rowid)"];
 
 export const articleHasTalkbacks = (id: string): 0 | 1 =>
