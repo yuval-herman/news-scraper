@@ -4,8 +4,8 @@ import Database from "better-sqlite3";
 // Db path changes after compilation, thus check if deployed to use new path
 const isDeployed = Boolean(process.env.NEWS_SCRAPER_DEPLOYED);
 const dbPath = isDeployed
-	? path.join(__dirname, "../scraper/db.db")
-	: path.join(__dirname, "../../scraper/dist/db.db");
+	? path.join(__dirname, "../../scraper/db.db")
+	: path.join(__dirname, "../../../scraper/dist/db.db");
 
 const db = new Database(dbPath);
 

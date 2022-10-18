@@ -13,7 +13,7 @@ import { getRandomNumbers, sampleRandom } from "../common/helpers";
 const app = express();
 const port = 4000;
 
-const STATIC_PATH = path.join(__dirname, "../news-game");
+const STATIC_PATH = path.join(__dirname, "../../news-game");
 app.use(express.static(STATIC_PATH));
 
 app.get("/random/talkback/", (req, res) => {
