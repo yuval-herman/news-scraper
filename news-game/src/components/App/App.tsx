@@ -9,7 +9,13 @@ enum GameState {
 	about,
 }
 
+/**
+ * Contains the entire App.
+ * Displays menu on startup.
+ */
 function App() {
+	// I opted for an enum-based state management instead of heavy weights like react-router
+	// for simplicities sake, the project is very light in views so I dimmed it unnecessary - yuval.
 	const [gameState, setGameState] = useState<GameState>(GameState.menu);
 	if (gameState === GameState.playing) {
 		return (
