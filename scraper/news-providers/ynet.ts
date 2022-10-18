@@ -1,4 +1,5 @@
-import { getRssWithTalkbacks, Talkback } from "./base";
+import { Talkback } from "../../common/types";
+import { getRssWithTalkbacks } from "./base";
 
 interface TalkbackParentId {
 	talkbackId: number;

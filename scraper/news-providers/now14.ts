@@ -1,5 +1,6 @@
+import { Talkback } from "../../common/types";
 import { OpenWebApiResult, Comment } from "../types/openweb";
-import { getRssWithTalkbacks, Talkback } from "./base";
+import { getRssWithTalkbacks } from "./base";
 
 export function getNow14() {
 	return getRssWithTalkbacks(
