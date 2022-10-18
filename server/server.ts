@@ -7,8 +7,10 @@ import {
 	articlesMaxRowid,
 	getArticleByRowid,
 	getArticleById,
+	articleHasTalkbacks,
 } from "./db";
 import { getRandomNumbers, sampleRandom } from "../common/helpers";
+import { Article } from "../common/types";
 
 const app = express();
 const port = 4000;
@@ -54,15 +56,29 @@ app.get("/random/talkback/:guid", (req, res) => {
 });
 
 /**
- * Get amount and return a random article array
+ * Get amount and return a random article array.
+ * If hasTalkbacks is specified, only return articles with talkbacks.
  */
 app.get("/random/article/", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
-	const rowidArr = getRandomNumbers(articlesMaxRowid(), amount);
-
-	const articles = Array(amount);
-	for (let i = 0; i < rowidArr.length; i++) {
-		articles[i] = getArticleByRowid(rowidArr[i]);
+	const hasTalkbacks = req.query.hasTalkbacks;
+	const articles = Array<Article>(amount);
+	let counter = 0;
+	for (let i = 0; i < amount; i++) {
+		counter = 0;
+		do {
+			articles[i] = getArticleByRowid(
+				getRandomNumbers(articlesMaxRowid(), 1)[0]
+			);
+			counter += 1;
+		} while (
+			hasTalkbacks &&
+			!articleHasTalkbacks(articles[i].guid) &&
+			counter < 10
+		);
+	}
+	if (counter > 9) {
+		res.sendStatus(500);
 	}
 	res.json(articles);
 });
