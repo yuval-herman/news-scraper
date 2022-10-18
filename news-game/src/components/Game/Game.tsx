@@ -54,6 +54,7 @@ function Game() {
 	});
 
 	if (error) {
+		console.error(error);
 		return (
 			<div className={style.error}>
 				<p>קרתה תקלה (×_×;)...</p>
@@ -66,6 +67,12 @@ function Game() {
 						https://github.com/yuval-herman/news-scraper
 					</a>
 				</p>
+				<div lang="en">
+					<p>ERROR DUMP:</p>
+					<p>
+						{JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}
+					</p>
+				</div>
 			</div>
 		);
 	}
