@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Article as ArticleType } from "../../../../common/types";
-import { DBTalkback } from "../../../../common/types";
+import { Article as ArticleType, DBTalkback } from "../../../../common/types";
 import Article from "../Article/Article";
 import Talkback from "../Talkback/Talkback";
 import style from "./Game.module.scss";
 
+/**
+ * An alias to (await fetch(input, init)).json()
+ * @param input url to fetch
+ * @param init fetch options
+ */
 async function jsonFetch(input: RequestInfo | URL, init?: RequestInit) {
 	return (await fetch(input, init)).json();
 }
@@ -16,6 +20,7 @@ function Game() {
 	const [showCorrect, setShowCorrect] = useState<boolean>(false);
 	const [error, setError] = useState<Error>();
 
+	// A function to fetch new articles and talkbacks.
 	const fetchData = useCallback(async () => {
 		try {
 			let article = (
@@ -28,11 +33,13 @@ function Game() {
 				await jsonFetch("/random/talkback/" + article.guid)
 			)[0];
 			resTalkbacks.push(correctTalkback);
+
+			//randomize correct answer location
 			const randIndex = Math.floor(Math.random() * resTalkbacks.length);
 			[resTalkbacks[3], resTalkbacks[randIndex]] = [
 				resTalkbacks[randIndex],
 				resTalkbacks[3],
-			]; //randomize correct answer location
+			];
 
 			setArticle(article);
 			setTalkbacks(resTalkbacks);
@@ -45,8 +52,6 @@ function Game() {
 		rendered.current = true;
 		fetchData();
 	});
-
-	console.log(talkbacks);
 
 	if (error) {
 		return (
