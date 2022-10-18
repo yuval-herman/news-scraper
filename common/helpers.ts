@@ -1,12 +1,21 @@
+import { pseudoRandomBytes } from "crypto";
+
 /**
  * Generates an array of random integers between 0 and `max`.
  * @param max biggest int to generate
  * @param amount amount of ints to generate
  */
-export function getRandomNumbers(max: number, amount: number) {
-	const numArr = Array(amount);
+export function getRandomNumbers(max: number | bigint, amount: number) {
+	const numArr = Array<number | bigint>(amount);
 	for (let i = 0; i < amount; i++) {
-		numArr[i] = Math.floor(Math.random() * max) + 1;
+		if (typeof max === "number") {
+			numArr[i] = Math.floor(Math.random() * max) + 1;
+		} else {
+			const rndBigInt = pseudoRandomBytes(
+				Number(max / 18446744073709551615n)
+			).readBigUInt64BE();
+			numArr[i] = max < rndBigInt ? max : rndBigInt;
+		}
 	}
 	return numArr;
 }
