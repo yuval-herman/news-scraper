@@ -97,7 +97,8 @@ def dev():
     signal.signal(signal.SIGINT, hanlde_sigint)
     # server
     processes.append(Popen(['npx', 'tsc'], cwd='server'))
-    processes.append(Popen(['npx', 'nodemon', 'dist/server.js'], cwd='server'))
+    processes.append(
+        Popen(['npx', 'nodemon', 'dist/server/server.js'], cwd='server'))
 
     # scraper
     processes.append(Popen(['npx', 'tsc'], cwd='scraper'))
