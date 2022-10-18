@@ -2,13 +2,14 @@ import Database from "better-sqlite3";
 import { appendFileSync } from "fs";
 import hash from "object-hash";
 import path from "path";
-import { DBTalkback, Article, Talkback } from "../common/types";
+import { Article, DBTalkback, Talkback } from "../common/types";
 import { getInn } from "./news-providers/inn";
 import { getMako } from "./news-providers/mako";
 import { getNow14 } from "./news-providers/now14";
 import { getWalla } from "./news-providers/walla";
 import { getYnet } from "./news-providers/ynet";
 
+// Log script started
 appendFileSync(
 	path.join(__dirname, "scraper-log.log"),
 	"scraper wake - " + new Date().toISOString() + "\n"
@@ -48,6 +49,9 @@ db.prepare(
 )`
 ).run();
 
+// This trigger runs on talkback delete and
+// moves the last talkback in place of the one deleted.
+// This is done to remove holes in the sqlite rowid sequence.
 db.prepare(
 	`CREATE TRIGGER IF NOT EXISTS replace_talkbacks
 	AFTER DELETE
@@ -84,6 +88,10 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     @articleGUID
 )`);
 
+/**
+ * Adds topics to talkbacks and then inserts them into the DB.
+ * @param talkbacks a talkback array
+ */
 const insertTalkbacks = async (talkbacks: DBTalkback[]) => {
 	for (let i = 0; i < talkbacks.length; i++) {
 		try {
@@ -122,6 +130,9 @@ const insertTalkbacks = async (talkbacks: DBTalkback[]) => {
 	})(talkbacks);
 };
 
+/**
+ * Insert one article into the DB.
+ */
 const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
     guid,
     title,
@@ -139,6 +150,10 @@ const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
         @contentSnippet,
 		@mainTopic)`);
 
+/**
+ * Adds topics to articles and inserts them to the DB.
+ * @param articles articles to insert into the DB
+ */
 const insertArticles = async (articles: Article[]) => {
 	for (let i = 0; i < articles.length; i++) {
 		try {
@@ -193,6 +208,11 @@ export interface NEMOBase {
 
 type NEMOResponse = NEMOBase[];
 
+/**
+ * Get a text paragraph and return named entities.
+ * @param content text to evaluate with NER
+ * @param backup backup text in case the main content didn't yield any result
+ */
 async function getTopics(content: string, backup?: string): Promise<string[]> {
 	content = content.replace(/[^א-ת ":,\n]/g, "");
 	const res = (await (
@@ -226,6 +246,13 @@ async function getTopics(content: string, backup?: string): Promise<string[]> {
 	return topics;
 }
 
+/**
+ * Get an async functions array and run them in specified blocks.
+ * Return after all functions have finished.
+ * Does not handle errors.
+ * @param fns async functions to run
+ * @param concurrentNum number of functions to run asynchronously
+ */
 async function poolPromises<T>(
 	fns: (() => Promise<T>)[],
 	concurrentNum?: number
@@ -245,6 +272,7 @@ poolPromises([getYnet, getMako, getWalla, getInn, getNow14], 4).then((res) =>
 	insertArticles(res.flat())
 );
 
+// Log scraping started without errors
 appendFileSync(
 	path.join(__dirname, "scraper-log.log"),
 	"scraper initialized - " + new Date().toISOString() + "\n"
