@@ -1,6 +1,13 @@
 import Parser from "rss-parser";
 import { Article, Talkback } from "../../common/types";
 
+/**
+ * Base function for all providers.
+ * Gets an rss url and custom functions for a specific site and extracts data and talkbacks.
+ * @param rssURL url to extract rss feed from
+ * @param extractID function that receives an article and return it's ID
+ * @param getTalkbacks function that receives an ID and return talkbacks
+ */
 export async function getRssWithTalkbacks(
 	rssURL: string,
 	extractID: (item: Article) => string,
@@ -8,6 +15,9 @@ export async function getRssWithTalkbacks(
 ): Promise<Article[]> {
 	const parser = new Parser();
 	let feed;
+	// Instead of raising the error and stopping execution I decided to
+	// ignore single-provider errors. I don't mind missing one provider once in a while since
+	// the info is not critical and abundant already - yuval.
 	try {
 		feed = await parser.parseURL(rssURL);
 	} catch (error) {
