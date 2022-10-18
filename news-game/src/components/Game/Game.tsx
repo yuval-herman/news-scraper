@@ -18,22 +18,15 @@ function Game() {
 
 	const fetchData = useCallback(async () => {
 		try {
-			let article = (await jsonFetch("/random/article"))[0];
+			let article = (
+				await jsonFetch("/random/article?hasTalkbacks=true")
+			)[0];
 			let resTalkbacks: DBTalkback[] = await jsonFetch(
 				"/random/talkback?amount=3&topics=" + article.mainTopic
 			);
-			let correctTalkback: DBTalkback | undefined = (
+			let correctTalkback: DBTalkback = (
 				await jsonFetch("/random/talkback/" + article.guid)
 			)[0];
-			while (!correctTalkback) {
-				article = (await jsonFetch("/random/article"))[0];
-				resTalkbacks = await jsonFetch(
-					"/random/talkback?amount=3&topics=" + article.mainTopic
-				);
-				correctTalkback = (
-					await jsonFetch("/random/talkback/" + article.guid)
-				)[0];
-			}
 			resTalkbacks.push(correctTalkback);
 			const randIndex = Math.floor(Math.random() * resTalkbacks.length);
 			[resTalkbacks[3], resTalkbacks[randIndex]] = [
