@@ -82,3 +82,9 @@ export const getTalkbackByRowid = (id: string) =>
  */
 export const talkbacksMaxRowid = () =>
 	db.prepare("SELECT max(rowid) FROM talkbacks").get()["max(rowid)"];
+
+export const articleHasTalkbacks = (id: string): 0 | 1 =>
+	db
+		.prepare("SELECT EXISTS(SELECT NULL FROM talkbacks WHERE articleGUID=?)")
+		.pluck()
+		.get(id);
