@@ -12,12 +12,16 @@ interface Props {
 function Talkback(props: Props) {
 	const [articleLink, setArticleLink] = useState<string>();
 	const talkback = props.talkback;
+
+	// Gets the article link after displaying the talkback and every time the talkback changes.
 	useEffect(() => {
 		fetch(`/article/${talkback.articleGUID}`).then((r) =>
 			r.json().then((article) => setArticleLink(article.link))
 		);
 	}, [talkback.articleGUID]);
+
 	function onClick(event: MouseEvent) {
+		// Ignore clicks on the article link.
 		if ((event.target as HTMLElement).nodeName === "A") return;
 		props.onClick();
 	}
