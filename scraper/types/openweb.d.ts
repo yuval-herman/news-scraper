@@ -1,3 +1,9 @@
+/**
+ * This file contains OpenWeb types.
+ * Those types are common to many news sites, thus they get their own file.
+ * More info on OpenWeb can be found here: https://developers.openweb.com/docs.
+ */
+
 interface User {
 	id: string;
 	display_name: string;
