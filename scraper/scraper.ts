@@ -268,9 +268,25 @@ async function poolPromises<T>(
 	return results;
 }
 
-poolPromises([getYnet, getMako, getWalla, getInn, getNow14], 4).then((res) =>
-	insertArticles(res.flat())
-);
+poolPromises([getYnet, getMako, getWalla, getInn, getNow14], 4).then((res) => {
+	let error;
+	try {
+		insertArticles(res.flat());
+	} catch (error) {
+		// Log errors in error file
+		appendFileSync(
+			path.join(__dirname, "scraper-log.log"),
+			"scraper initialized - " + new Date().toISOString() + "\n"
+		);
+	} finally {
+		// Log scraping finished
+		let msg = "scraper initialized - " + new Date().toISOString() + "\n";
+		if (error) {
+			msg += "\nERROR START\n" + error + "\nERROR END\n";
+		}
+		appendFileSync(path.join(__dirname, "scraper-log.log"), msg);
+	}
+});
 
 // Log scraping started without errors
 appendFileSync(
