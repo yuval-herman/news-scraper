@@ -8,7 +8,7 @@ import { pseudoRandomBytes } from "crypto";
 export function getRandomNumbers(max: number | bigint, amount: number) {
 	const numArr = Array<number | bigint>(amount);
 	for (let i = 0; i < amount; i++) {
-		if (typeof max === "number") {
+		if (typeof max !== "bigint") {
 			numArr[i] = Math.floor(Math.random() * max) + 1;
 		} else {
 			const rndBigInt = pseudoRandomBytes(
