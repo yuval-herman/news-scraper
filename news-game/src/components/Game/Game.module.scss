@@ -1,4 +1,5 @@
 .main {
+	z-index: -1;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-evenly;
@@ -33,10 +34,11 @@
 		border: solid #aaa 1px;
 		border-radius: 10px;
 		.article-div {
-			flex: 1 1 0;
 			max-height: 45%;
+			flex: 1 1 0;
 		}
 		.talkbacks {
+			max-height: 45%;
 			flex: 1 1 0;
 			flex-direction: row;
 			flex-wrap: wrap;
