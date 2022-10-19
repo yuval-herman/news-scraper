@@ -13,6 +13,10 @@ $main: #aaa;
 	padding: 1%;
 	box-shadow: 5px 5px 5px 0px rgba(0, 0, 0, 0.15);
 	cursor: pointer;
+	gap: 1rem;
+	p {
+		margin: 0;
+	}
 	.head {
 		display: flex;
 		justify-content: space-between;
@@ -21,7 +25,7 @@ $main: #aaa;
 			font-size: small;
 		}
 		.link {
-			margin: 1rem;
+			margin: 0 1rem;
 			opacity: var(--show-link);
 			pointer-events: all;
 			outline: none;
@@ -50,6 +54,16 @@ $main: #aaa;
 		border-radius: 10px;
 		padding: 1%;
 		overflow-y: scroll;
+		&:hover {
+			overflow-y: visible;
+			scale: 130%;
+			translate: 0 -40%;
+			&.content-long {
+				max-height: 20rem;
+				overflow-y: scroll;
+				position: absolute;
+			}
+		}
 	}
 	&:hover:not(.correct, .incorrect) {
 		background-color: lighten($color: $main, $amount: 15);
@@ -68,5 +82,5 @@ $main: #aaa;
 .correct,
 .incorrect {
 	--show-link: 1;
-	pointer-events: none;
+	cursor: unset;
 }
