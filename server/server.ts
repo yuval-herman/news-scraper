@@ -1,22 +1,18 @@
 import express from "express";
-import path from "path";
-import {
-	getArticlesGuidRandomOrder,
-	getTalkbacksByTopic,
-	getTalkbacksByArticleGuid,
-	articlesMaxRowid,
-	getArticleByRowid,
-	getArticleById,
-	articleHasTalkbacks,
-} from "./db";
 import { getRandomNumbers, sampleRandom } from "../common/helpers";
 import { Article } from "../common/types";
+import {
+	articleHasTalkbacks,
+	articlesMaxRowid,
+	getArticleById,
+	getArticleByRowid,
+	getArticlesGuidRandomOrder,
+	getTalkbacksByArticleGuid,
+	getTalkbacksByTopic,
+} from "./db";
 
 const app = express();
 const port = 4000;
-
-const STATIC_PATH = path.join(__dirname, "../../news-game");
-app.use(express.static(STATIC_PATH));
 
 /**
  * Get amount and topics and return an array of talkbacks related to topics with `amount` length.
@@ -91,8 +87,6 @@ app.get("/article/:id", (req, res) => {
 	if (!article) res.status(404).send("article not found");
 	else res.json(article);
 });
-
-app.get("*", (_, res) => res.sendFile(path.join(STATIC_PATH, "index.html")));
 
 app.listen(port, () => {
 	console.log(`listening on port ${port}`);
