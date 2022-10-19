@@ -19,6 +19,7 @@ function Game() {
 	const [article, setArticle] = useState<ArticleType>();
 	const [showCorrect, setShowCorrect] = useState<boolean>(false);
 	const [error, setError] = useState<Error>();
+	const [retries, setRetries] = useState<number>(0);
 
 	// A function to fetch new articles and talkbacks.
 	const fetchData = useCallback(async () => {
@@ -67,12 +68,23 @@ function Game() {
 						https://github.com/yuval-herman/news-scraper
 					</a>
 				</p>
-				<div lang="en">
-					<p>ERROR DUMP:</p>
+				<div lang="en" dir="ltr" className={style["error-dump"]}>
+					<h4 className={style.title}>ERROR DUMP</h4>
 					<p>
 						{JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}
 					</p>
 				</div>
+				<button
+					className={style.button}
+					onClick={() => {
+						setError(undefined);
+						fetchData();
+						setRetries((prev) => prev + 1);
+					}}
+				>
+					לנסות שוב?
+				</button>
+				<p className={style.retries}>{!retries || "retries " + retries}</p>
 			</div>
 		);
 	}

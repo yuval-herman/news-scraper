@@ -9,21 +9,9 @@
 		justify-content: center;
 		align-items: center;
 		.next-button {
-			max-width: 30rem;
-			width: calc(100% - 2rem);
-			transition: all 0.5s;
-			margin: 0 1rem;
-			border: none;
-			border-radius: 10px;
-			padding: 0.5rem;
+			@extend .button;
 			background-color: black;
 			color: white;
-			font-size: large;
-			font-weight: 600;
-			letter-spacing: 0.5rem;
-			&:enabled {
-				cursor: pointer;
-			}
 		}
 	}
 	.talkbacks {
@@ -61,7 +49,25 @@
 	}
 }
 
+.button {
+	max-width: 30rem;
+	width: calc(100% - 2rem);
+	transition: all 0.5s;
+	margin: 0 1rem;
+	border: none;
+	border-radius: 10px;
+	padding: 0.5rem;
+	font-size: large;
+	font-weight: 600;
+	letter-spacing: 0.5rem;
+	&:enabled {
+		cursor: pointer;
+	}
+}
+
 .error {
+	display: flex;
+	flex-direction: column;
 	max-width: 70%;
 	padding: 1rem;
 	position: absolute;
@@ -70,6 +76,22 @@
 	translate: -50% -50%;
 	border: solid #aaa 1px;
 	border-radius: 10px;
+	.error-dump {
+		border: solid #aaa 1px;
+		border-radius: 10px;
+		padding: 1rem;
+		text-align: center;
+		.title {
+			text-decoration: underline;
+			letter-spacing: 0.2rem;
+		}
+	}
+	.button {
+		margin: auto;
+	}
+	.retries {
+		text-align: center;
+	}
 }
 
 .waiter {
