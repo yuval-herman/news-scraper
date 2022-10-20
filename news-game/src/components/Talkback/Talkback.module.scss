@@ -54,14 +54,16 @@ $main: #aaa;
 		border-radius: 10px;
 		padding: 1%;
 		overflow-y: scroll;
-		&:hover {
-			overflow-y: visible;
-			scale: 130%;
-			translate: 0 -40%;
-			&.content-long {
-				max-height: 20rem;
-				overflow-y: scroll;
-				position: absolute;
+		@media only screen and (min-width: 600px) {
+			&:hover {
+				overflow-y: visible;
+				scale: 130%;
+				translate: 0 -40%;
+				&.content-long {
+					max-height: 20rem;
+					overflow-y: scroll;
+					position: absolute;
+				}
 			}
 		}
 	}
