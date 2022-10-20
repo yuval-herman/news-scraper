@@ -14,15 +14,26 @@ async function jsonFetch(input: RequestInfo | URL, init?: RequestInit) {
 }
 
 function Game() {
+	const STAGE_TIME = 10;
+	const TOTAL_STAGES = 3;
 	const rendered = useRef(false);
 	const [talkbacks, setTalkbacks] = useState<DBTalkback[]>([]);
 	const [article, setArticle] = useState<ArticleType>();
 	const [showCorrect, setShowCorrect] = useState<boolean>(false);
 	const [error, setError] = useState<Error>();
 	const [retries, setRetries] = useState<number>(0);
+	const [time, setTime] = useState<number>(STAGE_TIME);
+	const [score, setScore] = useState<number>(0);
+	const [stage, setStage] = useState<number>(-1);
+	const [scoresTab, setScoresTab] = useState<
+		{
+			time: number;
+			correct: boolean;
+		}[]
+	>([]);
 
 	// A function to fetch new articles and talkbacks.
-	const fetchData = useCallback(async () => {
+	const nextStage = useCallback(async () => {
 		try {
 			let article = (
 				await jsonFetch("/random/article?hasTalkbacks=true")
@@ -44,6 +55,8 @@ function Game() {
 
 			setArticle(article);
 			setTalkbacks(resTalkbacks);
+			setTime(STAGE_TIME);
+			setStage((prev) => prev + 1);
 		} catch (errorObj) {
 			setError(errorObj as Error);
 		}
@@ -51,8 +64,19 @@ function Game() {
 	useEffect(() => {
 		if (rendered.current) return;
 		rendered.current = true;
-		fetchData();
+		nextStage();
 	});
+	const timeEnd = time <= 0;
+	useEffect(() => {
+		if (error || showCorrect || stage === TOTAL_STAGES) return;
+		if (timeEnd) {
+			setShowCorrect(false);
+			setScoresTab((prev) => [...prev, { correct: false, time: 0 }]);
+			nextStage();
+		}
+		const id = setInterval(() => setTime((prev) => prev - 0.1), 100);
+		return () => clearInterval(id);
+	}, [showCorrect, timeEnd]);
 
 	if (error) {
 		console.error(error);
@@ -78,7 +102,7 @@ function Game() {
 					className={style.button}
 					onClick={() => {
 						setError(undefined);
-						fetchData();
+						nextStage();
 						setRetries((prev) => prev + 1);
 					}}
 				>
@@ -89,8 +113,43 @@ function Game() {
 		);
 	}
 
+	if (stage === TOTAL_STAGES) {
+		let finalScore = 0;
+		for (const item of scoresTab) {
+			finalScore += (item.time / (STAGE_TIME - 1)) * Number(item.correct);
+		}
+
+		return (
+			<div className={style["result-screen"]}>
+				<h1 className={style.title}>נגמר!</h1>
+				<h4 className={style["secondary-title"]}>הנה התוצאות:</h4>
+				<ol>
+					{scoresTab.map((item) => (
+						<li>
+							<p>
+								{item.correct ? "צדקת!" : "טעות..."} לקח לך{" "}
+								{(STAGE_TIME - item.time).toPrecision(2)} שניות להגיע
+								לתשובה
+							</p>
+						</li>
+					))}
+				</ol>
+				<h3>ניקודך הסופי הוא:</h3>
+				<h2>
+					{finalScore.toPrecision(2)}/{TOTAL_STAGES}
+				</h2>
+			</div>
+		);
+	}
+
 	return (
 		<div className={style.main}>
+			<div className={style.hud}>
+				<p className={style.counter}>זמן - {time.toPrecision(3)}</p>
+				<p className={style.score}>
+					ניקוד {score}/{TOTAL_STAGES}
+				</p>
+			</div>
 			<div className={style["article-div"]}>
 				{article ? (
 					<Article className={style.article} article={article} />
@@ -102,7 +161,7 @@ function Game() {
 					className={style["next-button"]}
 					style={{ opacity: showCorrect ? 1 : 0 }}
 					onClick={() => {
-						fetchData();
+						nextStage();
 						setShowCorrect(false);
 					}}
 					disabled={!showCorrect}
@@ -113,7 +172,19 @@ function Game() {
 			<div className={style.talkbacks}>
 				{talkbacks.map((item) => (
 					<Talkback
-						onClick={() => setShowCorrect((prev) => !prev)}
+						onClick={() => {
+							if (!article) return;
+							setShowCorrect((prev) => !prev);
+							let correct = false;
+							if (item.articleGUID === article.guid) {
+								correct = true;
+								setScore((prev) => prev + 1);
+							}
+							setScoresTab((prev) => [
+								...prev,
+								{ correct: correct, time: time },
+							]);
+						}}
 						key={item.hash}
 						talkback={item}
 						isCorrect={article && item.articleGUID === article.guid}
