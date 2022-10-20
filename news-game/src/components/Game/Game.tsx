@@ -14,8 +14,8 @@ async function jsonFetch(input: RequestInfo | URL, init?: RequestInit) {
 }
 
 function Game() {
-	const STAGE_TIME = 10;
-	const TOTAL_STAGES = 3;
+	const STAGE_TIME = 15;
+	const TOTAL_STAGES = 5;
 	const rendered = useRef(false);
 	const [talkbacks, setTalkbacks] = useState<DBTalkback[]>([]);
 	const [article, setArticle] = useState<ArticleType>();
