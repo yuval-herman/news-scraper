@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Game from "../Game/Game";
 import style from "./App.module.scss";
 
@@ -17,6 +17,33 @@ function App() {
 	// I opted for an enum-based state management instead of heavy weights like react-router
 	// for simplicities sake, the project is very light in views so I dimmed it unnecessary - yuval.
 	const [gameState, setGameState] = useState<GameState>(GameState.menu);
+	const titleRef = useRef<HTMLHeadingElement>(null);
+
+	// This animates the title with translations combined with css `transition: all`
+	useEffect(() => {
+		if (!titleRef.current) return;
+		let transitionStrength = {
+			rotate: 10,
+			translate: 10,
+		};
+		const id = setInterval(() => {
+			if (!titleRef.current) return;
+			titleRef.current.style.rotate =
+				Math.random() * transitionStrength.rotate + "deg";
+			titleRef.current.style.translate =
+				Math.random() * transitionStrength.translate -
+				0.5 * transitionStrength.translate +
+				"px " +
+				(Math.random() * transitionStrength.translate -
+					0.5 * transitionStrength.translate +
+					"px");
+			titleRef.current.style.scale = Math.random() * 110 + 120 + "%";
+			transitionStrength.rotate *= Math.round(Math.random()) || -1;
+			transitionStrength.translate *= Math.round(Math.random()) || -1;
+		}, 600);
+		return () => clearInterval(id);
+	});
+
 	if (gameState === GameState.playing) {
 		return (
 			<div>
@@ -90,7 +117,12 @@ function App() {
 	}
 	return (
 		<div className={style.main}>
-			<h1 className={style.title}>משחק חדשות ללא שם!</h1>
+			<div>
+				<h1 className={style.title} ref={titleRef}>
+					מה אתה אומר?!
+				</h1>
+				<h3>משחק הדעות הישראלי</h3>
+			</div>
 			<div className={style.buttons}>
 				<button
 					className={style.button}
