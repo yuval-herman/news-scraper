@@ -17,6 +17,10 @@ function Game() {
 	const STAGE_TIME = 15;
 	const TOTAL_STAGES = 5;
 	const rendered = useRef(false);
+	const timeIndicator = useRef<HTMLDivElement>(null);
+	const [stagesData, setStagesData] = useState<
+		{ article: ArticleType; talkbacks: DBTalkback[] }[]
+	>([]);
 	const [talkbacks, setTalkbacks] = useState<DBTalkback[]>([]);
 	const [article, setArticle] = useState<ArticleType>();
 	const [showCorrect, setShowCorrect] = useState<boolean>(false);
@@ -24,7 +28,7 @@ function Game() {
 	const [retries, setRetries] = useState<number>(0);
 	const [time, setTime] = useState<number>(STAGE_TIME);
 	const [score, setScore] = useState<number>(0);
-	const [stage, setStage] = useState<number>(-1);
+	const [stage, setStage] = useState<number>(0);
 	const [scoresTab, setScoresTab] = useState<
 		{
 			time: number;
@@ -32,51 +36,65 @@ function Game() {
 		}[]
 	>([]);
 
-	// A function to fetch new articles and talkbacks.
-	const nextStage = useCallback(async () => {
-		try {
-			let article = (
-				await jsonFetch("/random/article?hasTalkbacks=true")
-			)[0];
-			let resTalkbacks: DBTalkback[] = await jsonFetch(
-				"/random/talkback?amount=3&topics=" + article.mainTopic
-			);
-			let correctTalkback: DBTalkback = (
-				await jsonFetch("/random/talkback/" + article.guid)
-			)[0];
-			resTalkbacks.push(correctTalkback);
+	// Set the data to current stage
+	const loadStage = useCallback(() => {
+		setArticle(stagesData[stage].article);
+		setTalkbacks(stagesData[stage].talkbacks);
+		setTime(STAGE_TIME);
+	}, [stagesData, stage]);
 
-			//randomize correct answer location
-			const randIndex = Math.floor(Math.random() * resTalkbacks.length);
-			[resTalkbacks[3], resTalkbacks[randIndex]] = [
-				resTalkbacks[randIndex],
-				resTalkbacks[3],
-			];
-
-			setArticle(article);
-			setTalkbacks(resTalkbacks);
-			setTime(STAGE_TIME);
-			setStage((prev) => prev + 1);
-		} catch (errorObj) {
-			setError(errorObj as Error);
-		}
-	}, []);
+	// Called on first render. Fetches all the data for the game
 	useEffect(() => {
 		if (rendered.current) return;
 		rendered.current = true;
-		nextStage();
+		(async () => {
+			const data: { article: ArticleType; talkbacks: DBTalkback[] }[] = [];
+			for (let i = 0; i < TOTAL_STAGES; i++) {
+				let resArticle: ArticleType = (
+					await jsonFetch("/random/article?hasTalkbacks=true")
+				)[0];
+				let resTalkbacks: DBTalkback[] = await jsonFetch(
+					"/random/talkback?amount=3&topics=" + resArticle.mainTopic
+				);
+				let correctTalkback: DBTalkback = (
+					await jsonFetch("/random/talkback/" + resArticle.guid)
+				)[0];
+				resTalkbacks.push(correctTalkback);
+
+				//randomize correct answer location
+				const randIndex = Math.floor(Math.random() * resTalkbacks.length);
+				[resTalkbacks[3], resTalkbacks[randIndex]] = [
+					resTalkbacks[randIndex],
+					resTalkbacks[3],
+				];
+				data.push({ article: resArticle, talkbacks: resTalkbacks });
+			}
+			setStagesData(data);
+		})().catch((errorObj: Error) => setError(errorObj));
 	});
-	const timeEnd = time <= 0;
+
+	// Main game loop.
+	const timeOut = time <= 0;
 	useEffect(() => {
-		if (error || showCorrect || stage === TOTAL_STAGES) return;
-		if (timeEnd) {
+		// Here, returning is practically the same as pausing.
+		if (error || showCorrect || stage === TOTAL_STAGES || !stagesData.length)
+			return;
+		if (timeOut) {
 			setShowCorrect(false);
 			setScoresTab((prev) => [...prev, { correct: false, time: 0 }]);
-			nextStage();
+			setStage((prev) => prev + 1);
 		}
-		const id = setInterval(() => setTime((prev) => prev - 0.1), 100);
+		loadStage();
+		const id = setInterval(() => {
+			setTime((prev) => {
+				if (timeIndicator.current)
+					timeIndicator.current.style.width =
+						(prev / STAGE_TIME) * 100 + "%";
+				return prev - 0.1;
+			});
+		}, 100);
 		return () => clearInterval(id);
-	}, [showCorrect, timeEnd]);
+	}, [showCorrect, timeOut, error, loadStage, stage, stagesData]);
 
 	if (error) {
 		console.error(error);
@@ -102,7 +120,7 @@ function Game() {
 					className={style.button}
 					onClick={() => {
 						setError(undefined);
-						nextStage();
+						loadStage();
 						setRetries((prev) => prev + 1);
 					}}
 				>
@@ -124,8 +142,8 @@ function Game() {
 				<h1 className={style.title}>נגמר!</h1>
 				<h4 className={style["secondary-title"]}>הנה התוצאות:</h4>
 				<ol>
-					{scoresTab.map((item) => (
-						<li>
+					{scoresTab.map((item, i) => (
+						<li key={i}>
 							<p>
 								{item.correct ? "צדקת!" : "טעות..."} לקח לך{" "}
 								{(STAGE_TIME - item.time).toPrecision(2)} שניות להגיע
@@ -145,6 +163,7 @@ function Game() {
 	return (
 		<div className={style.main}>
 			<div className={style.hud}>
+				<div className={style["time-indicator"]} ref={timeIndicator}></div>
 				<p className={style.counter}>זמן - {time.toPrecision(3)}</p>
 				<p className={style.score}>
 					ניקוד {score}/{TOTAL_STAGES}
@@ -161,7 +180,7 @@ function Game() {
 					className={style["next-button"]}
 					style={{ opacity: showCorrect ? 1 : 0 }}
 					onClick={() => {
-						nextStage();
+						setStage((prev) => prev + 1);
 						setShowCorrect(false);
 					}}
 					disabled={!showCorrect}
