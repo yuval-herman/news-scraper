@@ -134,7 +134,9 @@ function Game() {
 	if (stage === TOTAL_STAGES) {
 		let finalScore = 0;
 		for (const item of scoresTab) {
-			finalScore += (item.time / (STAGE_TIME - 1)) * Number(item.correct);
+			finalScore +=
+				((item.time + (STAGE_TIME - item.time) / 1.5) / STAGE_TIME) *
+				Number(item.correct);
 		}
 
 		return (
