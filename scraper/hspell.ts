@@ -7,11 +7,12 @@ const hspell = spawn("hspell", ["-l"]);
  * Get a text and return list of base words.
  * @param text text to analyze
  */
-export function hspellAnalyze(text: string): Promise<string[]> {
+function hspellAnalyze(text: string): Promise<string[]> {
+	hspell.stdout.removeAllListeners();
 	hspell.stdin.write(encode(text, "ISO-8859-8"));
 	hspell.stdin.write(Buffer.from([0]));
-	return new Promise((resolve) => {
-		hspell.stdout?.on("data", (data: Buffer) => {
+	return new Promise<string[]>((resolve) => {
+		hspell.stdout.on("data", (data: Buffer) => {
 			resolve(parseHspellOutput(decode(data, "ISO-8859-8")));
 		});
 	});
@@ -54,3 +55,30 @@ function parseHspellOutput(text: string): string[] {
 export function stopHspell() {
 	hspell.stdin.end();
 }
+
+// function getTopic(words: string[]) {
+// 	const itemFrequencyMap = Array.from(frequentWord(words).keys()).map(
+// 		(word): [number, string] => [frequencyMap.get(word)!, word]
+// 	);
+// 	let max: [number, string][] = [[0, ""]];
+// 	for (const pair of itemFrequencyMap) {
+// 		if (max[0][0] < pair[0]) max = [pair];
+// 		else if (max[0][0] === pair[0]) max.push(pair);
+// 	}
+// 	return max;
+// }
+
+// export async function frequentWords(
+// 	data: string[]
+// ): Promise<Map<string, number>> {
+// 	const wordMap = new Map<string, number>();
+// 	const countWords = (analyzed: string[]): void => {
+// 		for (let word of analyzed) {
+// 			wordMap.set(word, (wordMap.get(word) ?? 0) + 1);
+// 		}
+// 	};
+// 	for (const text of data) {
+// 		countWords(await hspellAnalyze(text));
+// 	}
+// 	return wordMap;
+// }
