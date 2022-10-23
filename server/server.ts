@@ -19,6 +19,7 @@ const port = 4000;
  * If there are not enough talkbacks related to `topics` to satisfy `amount` random talkbacks are added.
  */
 app.get("/random/talkback/", (req, res) => {
+	//TODO, FIXME: there is a rare bug when the same talkback can return twice
 	const amount = Number(req.query.amount) || 1;
 	const topics: string[] = JSON.parse(req.query.topics?.toString() ?? "[]");
 
