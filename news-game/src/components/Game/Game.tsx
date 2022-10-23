@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Article as ArticleType, DBTalkback } from "../../../../common/types";
 import Article from "../Article/Article";
 import Talkback from "../Talkback/Talkback";
@@ -14,34 +14,23 @@ async function jsonFetch(input: RequestInfo | URL, init?: RequestInit) {
 }
 
 function Game() {
-	const STAGE_TIME = 15;
+	const STAGE_TIME = 1;
 	const TOTAL_STAGES = 5;
 	const rendered = useRef(false);
 	const timeIndicator = useRef<HTMLDivElement>(null);
+	const [error, setError] = useState<Error>();
+	const [showCorrect, setShowCorrect] = useState<boolean>(false);
+	const [time, setTime] = useState<number>(STAGE_TIME);
+	const [stage, setStage] = useState<number>(0);
 	const [stagesData, setStagesData] = useState<
 		{ article: ArticleType; talkbacks: DBTalkback[] }[]
 	>([]);
-	const [talkbacks, setTalkbacks] = useState<DBTalkback[]>([]);
-	const [article, setArticle] = useState<ArticleType>();
-	const [showCorrect, setShowCorrect] = useState<boolean>(false);
-	const [error, setError] = useState<Error>();
-	const [retries, setRetries] = useState<number>(0);
-	const [time, setTime] = useState<number>(STAGE_TIME);
-	const [score, setScore] = useState<number>(0);
-	const [stage, setStage] = useState<number>(0);
 	const [scoresTab, setScoresTab] = useState<
 		{
 			time: number;
 			correct: boolean;
 		}[]
 	>([]);
-
-	// Set the data to current stage
-	const loadStage = useCallback(() => {
-		setArticle(stagesData[stage].article);
-		setTalkbacks(stagesData[stage].talkbacks);
-		setTime(STAGE_TIME);
-	}, [stagesData, stage]);
 
 	// Called on first render. Fetches all the data for the game
 	useEffect(() => {
@@ -76,15 +65,16 @@ function Game() {
 	// Main game loop.
 	const timeOut = time <= 0;
 	useEffect(() => {
-		// Here, returning is practically the same as pausing.
+		// Here, returning is practically pausing as it stops the clock.
 		if (error || showCorrect || stage === TOTAL_STAGES || !stagesData.length)
 			return;
+		// Player ran out of time to answer
 		if (timeOut) {
 			setShowCorrect(false);
 			setScoresTab((prev) => [...prev, { correct: false, time: 0 }]);
 			setStage((prev) => prev + 1);
 		}
-		loadStage();
+		setTime(STAGE_TIME);
 		const id = setInterval(() => {
 			setTime((prev) => {
 				if (timeIndicator.current)
@@ -94,7 +84,7 @@ function Game() {
 			});
 		}, 100);
 		return () => clearInterval(id);
-	}, [showCorrect, timeOut, error, loadStage, stage, stagesData]);
+	}, [showCorrect, timeOut, error, stage, stagesData]);
 
 	if (error) {
 		console.error(error);
@@ -116,23 +106,15 @@ function Game() {
 						{JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}
 					</p>
 				</div>
-				<button
-					className={style.button}
-					onClick={() => {
-						setError(undefined);
-						loadStage();
-						setRetries((prev) => prev + 1);
-					}}
-				>
-					לנסות שוב?
-				</button>
-				<p className={style.retries}>{!retries || "retries " + retries}</p>
 			</div>
 		);
 	}
 
+	// Game is done.
 	if (stage === TOTAL_STAGES) {
 		let finalScore = 0;
+
+		// Calculate score
 		for (const item of scoresTab) {
 			finalScore +=
 				((item.time + (STAGE_TIME - item.time) / 1.5) / STAGE_TIME) *
@@ -146,11 +128,15 @@ function Game() {
 				<ol>
 					{scoresTab.map((item, i) => (
 						<li key={i}>
-							<p>
-								{item.correct ? "צדקת!" : "טעות..."} לקח לך{" "}
-								{(STAGE_TIME - item.time).toPrecision(2)} שניות להגיע
-								לתשובה
-							</p>
+							{STAGE_TIME - item.time === STAGE_TIME ? (
+								<p>לא הספקת לענות...</p>
+							) : (
+								<p>
+									{item.correct ? "צדקת!" : "טעות..."} לקח לך{" "}
+									{(STAGE_TIME - item.time).toPrecision(2)} שניות להגיע
+									לתשובה
+								</p>
+							)}
 						</li>
 					))}
 				</ol>
@@ -162,13 +148,20 @@ function Game() {
 		);
 	}
 
+	const article: ArticleType | undefined = stagesData[stage]?.article;
+	const talkbacks: DBTalkback[] | undefined = stagesData[stage]?.talkbacks;
 	return (
 		<div className={style.main}>
 			<div className={style.hud}>
 				<div className={style["time-indicator"]} ref={timeIndicator}></div>
 				<p className={style.counter}>זמן - {time.toPrecision(3)}</p>
 				<p className={style.score}>
-					ניקוד {score}/{TOTAL_STAGES}
+					ניקוד{" "}
+					{scoresTab.reduce(
+						(prev, curr) => prev + Number(curr.correct),
+						0
+					)}
+					/{TOTAL_STAGES}
 				</p>
 			</div>
 			<div className={style["article-div"]}>
@@ -191,19 +184,17 @@ function Game() {
 				</button>
 			</div>
 			<div className={style.talkbacks}>
-				{talkbacks.map((item) => (
+				{talkbacks?.map((item) => (
 					<Talkback
 						onClick={() => {
 							if (!article) return;
 							setShowCorrect((prev) => !prev);
-							let correct = false;
-							if (item.articleGUID === article.guid) {
-								correct = true;
-								setScore((prev) => prev + 1);
-							}
 							setScoresTab((prev) => [
 								...prev,
-								{ correct: correct, time: time },
+								{
+									correct: item.articleGUID === article.guid,
+									time: time,
+								},
 							]);
 						}}
 						key={item.hash}
