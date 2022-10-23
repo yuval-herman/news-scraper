@@ -94,15 +94,7 @@ const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
  */
 const insertTalkbacks = async (talkbacks: DBTalkback[]) => {
 	for (let i = 0; i < talkbacks.length; i++) {
-		try {
-			const topics = await getTopics(
-				talkbacks[i].content,
-				talkbacks[i].title ?? undefined
-			);
-			talkbacks[i].mainTopic = JSON.stringify(topics);
-		} catch {
-			talkbacks[i].mainTopic = "[]";
-		}
+		talkbacks[i].mainTopic = "[]";
 	}
 	db.transaction((talkbacks: DBTalkback[]) => {
 		for (const talkback of talkbacks) {
@@ -156,15 +148,7 @@ const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
  */
 const insertArticles = async (articles: Article[]) => {
 	for (let i = 0; i < articles.length; i++) {
-		try {
-			const topics = await getTopics(
-				articles[i].title,
-				articles[i].contentSnippet
-			);
-			articles[i].mainTopic = JSON.stringify(topics);
-		} catch {
-			articles[i].mainTopic = "[]";
-		}
+		articles[i].mainTopic = "[]";
 	}
 	db.transaction((articles: Article[]) => {
 		for (const article of articles) {
@@ -179,72 +163,6 @@ const insertArticles = async (articles: Article[]) => {
 		}
 	})(articles);
 };
-
-export interface NemoMultiAlignToken {
-	text: string;
-	label: string;
-	start: number;
-	end: number;
-}
-
-export interface Token {
-	nemo_multi_align_token: NemoMultiAlignToken[];
-}
-
-export interface Ents {
-	token: Token;
-}
-
-export interface Token2 {
-	text: string;
-	nemo_multi_align_token: string;
-}
-
-export interface NEMOBase {
-	text: string;
-	ents: Ents;
-	tokens: Token2[];
-}
-
-type NEMOResponse = NEMOBase[];
-
-/**
- * Get a text paragraph and return named entities.
- * @param content text to evaluate with NER
- * @param backup backup text in case the main content didn't yield any result
- */
-async function getTopics(content: string, backup?: string): Promise<string[]> {
-	content = content.replace(/[^א-ת ":,\n]/g, "");
-	const res = (await (
-		await fetch(
-			"http://localhost:8090/multi_to_single?multi_model_name=token-multi&verbose=0",
-			{
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					sentences: content,
-					tokenized: false,
-				}),
-				method: "POST",
-			}
-		)
-	).json()) as NEMOResponse;
-	let topics = [
-		...new Set(
-			res
-				.map((line) =>
-					line.ents.token.nemo_multi_align_token.map((token) => token.text)
-				)
-				.flat()
-		),
-	];
-
-	if (!topics.length && backup) {
-		return getTopics(backup);
-	}
-	return topics;
-}
 
 /**
  * Get an async functions array and run them in specified blocks.
