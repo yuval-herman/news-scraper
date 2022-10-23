@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import Game from "../Game/Game";
+import Game, { GameProps } from "../Game/Game";
 import style from "./App.module.scss";
 
 enum GameState {
@@ -9,14 +9,27 @@ enum GameState {
 	about,
 }
 
+type difficultyName = "easy" | "medium" | "hard";
+
+type Difficulty = {
+	[key in difficultyName]: GameProps;
+};
+
+const difficultyOptions: Difficulty = {
+	easy: { difficulty: "קלה", stageTime: 20, totalStages: 5 },
+	medium: { difficulty: "בינונית", stageTime: 15, totalStages: 5 },
+	hard: { difficulty: "קשה", stageTime: 10, totalStages: 7 },
+};
+
 /**
  * Contains the entire App.
  * Displays menu on startup.
  */
 function App() {
 	// I opted for an enum-based state management instead of heavy weights like react-router
-	// for simplicities sake, the project is very light in views so I dimmed it unnecessary - yuval.
+	// for simplicities sake, the project is very light in views so I dimmed it unnecessary.
 	const [gameState, setGameState] = useState<GameState>(GameState.menu);
+	const [difficulty, setDifficulty] = useState<difficultyName>();
 	const titleRef = useRef<HTMLHeadingElement>(null);
 
 	// This animates the title with translations combined with css `transition: all`
@@ -43,8 +56,43 @@ function App() {
 		}, 600);
 		return () => clearInterval(id);
 	});
+	// Remove difficulty settings when returning to menu.
+	useEffect(() => setDifficulty(undefined), [gameState]);
+	// Change state to menu when returning via browser back button.
+	useEffect(() => {
+		const onPopState = () => setGameState(GameState.menu);
+		window.addEventListener("popstate", onPopState);
+		return () => window.removeEventListener("popstate", onPopState);
+	}, []);
 
 	if (gameState === GameState.playing) {
+		if (!difficulty) {
+			return (
+				<div className={style.main}>
+					<div className={style["text-box"]}>
+						<h4>בחרו רמת קושי</h4>
+						<button
+							className={style.button}
+							onClick={() => setDifficulty("easy")}
+						>
+							קלה
+						</button>
+						<button
+							className={style.button}
+							onClick={() => setDifficulty("medium")}
+						>
+							בינונית
+						</button>
+						<button
+							className={style.button}
+							onClick={() => setDifficulty("hard")}
+						>
+							קשה
+						</button>
+					</div>
+				</div>
+			);
+		}
 		return (
 			<div>
 				<button
@@ -54,7 +102,7 @@ function App() {
 				>
 					חזרה לתפריט
 				</button>
-				<Game />
+				<Game {...difficultyOptions[difficulty]} />
 			</div>
 		);
 	}

@@ -13,9 +13,15 @@ async function jsonFetch(input: RequestInfo | URL, init?: RequestInit) {
 	return (await fetch(input, init)).json();
 }
 
-function Game() {
-	const STAGE_TIME = 1;
-	const TOTAL_STAGES = 5;
+export interface GameProps {
+	stageTime: number;
+	totalStages: number;
+	difficulty: string;
+}
+
+function Game(props: GameProps) {
+	const STAGE_TIME = props.stageTime;
+	const TOTAL_STAGES = props.totalStages;
 	const rendered = useRef(false);
 	const timeIndicator = useRef<HTMLDivElement>(null);
 	const [error, setError] = useState<Error>();
@@ -36,6 +42,7 @@ function Game() {
 	useEffect(() => {
 		if (rendered.current) return;
 		rendered.current = true;
+		window.history.pushState(undefined, "");
 		(async () => {
 			const data: { article: ArticleType; talkbacks: DBTalkback[] }[] = [];
 			for (let i = 0; i < TOTAL_STAGES; i++) {
@@ -84,7 +91,15 @@ function Game() {
 			});
 		}, 100);
 		return () => clearInterval(id);
-	}, [showCorrect, timeOut, error, stage, stagesData]);
+	}, [
+		showCorrect,
+		timeOut,
+		error,
+		stage,
+		stagesData,
+		STAGE_TIME,
+		TOTAL_STAGES,
+	]);
 
 	if (error) {
 		console.error(error);
@@ -144,6 +159,7 @@ function Game() {
 				<h2>
 					{finalScore.toPrecision(2)}/{TOTAL_STAGES}
 				</h2>
+				<h3>ברמת קושי {props.difficulty}!</h3>
 			</div>
 		);
 	}
