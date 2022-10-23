@@ -17,7 +17,7 @@ export async function getRssWithTalkbacks(
 	let feed;
 	// Instead of raising the error and stopping execution I decided to
 	// ignore single-provider errors. I don't mind missing one provider once in a while since
-	// the info is not critical and abundant already - yuval.
+	// the info is not critical and abundant already.
 	try {
 		feed = await parser.parseURL(rssURL);
 	} catch (error) {
