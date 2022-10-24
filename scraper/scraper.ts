@@ -1,8 +1,9 @@
 import Database from "better-sqlite3";
-import { appendFileSync } from "fs";
+import { appendFileSync, writeFileSync } from "fs";
 import hash from "object-hash";
 import path from "path";
 import { Article, DBTalkback, Talkback } from "../common/types";
+import { frequentWords } from "./hspell";
 import { getInn } from "./news-providers/inn";
 import { getMako } from "./news-providers/mako";
 import { getNow14 } from "./news-providers/now14";
@@ -147,6 +148,30 @@ const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
  * @param articles articles to insert into the DB
  */
 const insertArticles = async (articles: Article[]) => {
+	console.log("calculating frequency");
+
+	const frequencyMap = await frequentWords(
+		articles.map(
+			(article) =>
+				article.content +
+				". " +
+				article.talkbacks
+					.map((talkback) => talkback.title || talkback.content)
+					.join(". ") +
+				". "
+		)
+	);
+
+	console.log("writing to file");
+
+	writeFileSync(
+		"temp.txt",
+		JSON.stringify(
+			[...frequencyMap].sort((a, b) => b[1] - a[1]),
+			null,
+			3
+		)
+	);
 	for (let i = 0; i < articles.length; i++) {
 		articles[i].mainTopic = "[]";
 	}
@@ -186,7 +211,7 @@ async function poolPromises<T>(
 	return results;
 }
 
-poolPromises([getYnet, getMako, getWalla, getInn, getNow14], 4).then((res) => {
+poolPromises([getInn, getMako, getWalla, getYnet, getNow14], 4).then((res) => {
 	let error;
 	try {
 		insertArticles(res.flat());
@@ -194,7 +219,7 @@ poolPromises([getYnet, getMako, getWalla, getInn, getNow14], 4).then((res) => {
 		// Log errors in error file
 		appendFileSync(
 			path.join(__dirname, "scraper-log.log"),
-			"scraper initialized - " + new Date().toISOString() + "\n"
+			"ERROR - " + new Date().toISOString() + "\n"
 		);
 	} finally {
 		// Log scraping finished

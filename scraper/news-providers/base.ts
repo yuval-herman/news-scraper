@@ -11,7 +11,8 @@ import { Article, Talkback } from "../../common/types";
 export async function getRssWithTalkbacks(
 	rssURL: string,
 	extractID: (item: Article) => string,
-	getTalkbacks: (id: string) => Promise<Talkback[]>
+	getTalkbacks: (id: string) => Promise<Talkback[]>,
+	specialOp?: (article: Article) => Article
 ): Promise<Article[]> {
 	const parser = new Parser();
 	let feed;
@@ -40,5 +41,5 @@ export async function getRssWithTalkbacks(
 			talkbacks: await getTalkbacks(itemID),
 		});
 	}
-	return itemWithTalkbacks;
+	return specialOp ? itemWithTalkbacks.map(specialOp) : itemWithTalkbacks;
 }

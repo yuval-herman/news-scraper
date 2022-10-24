@@ -1,5 +1,6 @@
-import { Talkback } from "../../common/types";
-import { OpenWebApiResult, Comment } from "../types/openweb";
+import axios from "axios";
+import { Article, Talkback } from "../../common/types";
+import { Comment, OpenWebApiResult } from "../types/openweb";
 import { getRssWithTalkbacks } from "./base";
 
 export function getInn() {
@@ -8,21 +9,23 @@ export function getInn() {
 		(item) => item.link!.split("/").at(-1)!,
 		async (id: string): Promise<Talkback[]> => {
 			const apiResult: OpenWebApiResult = await (
-				await fetch("https://api-2-0.spot.im/v1.0.0/conversation/read", {
-					credentials: "include",
-					headers: {
-						"x-spot-id": "sp_wqPYg8lN",
-						"x-post-id": "0-" + id,
+				await axios.post(
+					"https://api-2-0.spot.im/v1.0.0/conversation/read",
+					{
+						count: 99999999,
+						depth: 9999999,
+						child_count: 999999,
 					},
-					body: JSON.stringify({
-						conversation_id: "sp_wqPYg8lN_0-" + id,
-						count: 999999,
-						depth: 99999,
-						child_count: 99999,
-					}),
-					method: "POST",
-				})
-			).json();
+					{
+						headers: {
+							"User-Agent": undefined,
+							"x-spot-id": "sp_wqPYg8lN",
+							"x-post-id": "0-580781",
+						},
+					}
+				)
+			).data;
+
 			const convertTalkback = (item: Comment): Talkback => ({
 				writer: item.user_display_name,
 				content: item.content[0].text,
@@ -34,6 +37,14 @@ export function getInn() {
 					: [],
 			});
 			return apiResult.conversation.comments.map(convertTalkback);
-		}
+		},
+		(article: SpecArticle) => ({
+			...article,
+			content: article["content:encodedSnippet"] ?? article.content,
+		})
 	);
+}
+
+interface SpecArticle extends Article {
+	"content:encodedSnippet"?: string;
 }

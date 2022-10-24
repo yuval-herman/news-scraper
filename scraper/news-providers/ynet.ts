@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Talkback } from "../../common/types";
 import { getRssWithTalkbacks } from "./base";
 
@@ -57,13 +58,11 @@ export function getYnet() {
 		async (id: string): Promise<Talkback[]> => {
 			let pageCounter = 1;
 			const apiURL = `https://www.ynet.co.il/iphone/json/api/talkbacks/list/${id}/start_to_end/`;
-			let tempResult: ApiResult = await (
-				await fetch(apiURL + pageCounter)
-			).json();
+			let tempResult: ApiResult = (await axios(apiURL + pageCounter)).data;
 			const apiResult: ApiResult = tempResult;
 			while (tempResult.rss.channel.hasMore) {
 				pageCounter++;
-				tempResult = await (await fetch(apiURL + pageCounter)).json();
+				tempResult = (await axios(apiURL + pageCounter)).data;
 				apiResult.rss.channel.item = apiResult.rss.channel.item!.concat(
 					tempResult.rss.channel.item!
 				);

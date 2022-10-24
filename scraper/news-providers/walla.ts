@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Talkback } from "../../common/types";
 import { getRssWithTalkbacks } from "./base";
 
@@ -31,14 +32,12 @@ export function getWalla() {
 		async (id: string): Promise<Talkback[]> => {
 			let pageCounter = 1;
 			const apiURL = `https://dal.walla.co.il/talkback/list/${id}?type=1&page=`;
-			let tempResult: ApiResult = await (
-				await fetch(apiURL + pageCounter)
-			).json();
+			let tempResult: ApiResult = (await axios(apiURL + pageCounter)).data;
 			const apiResult: ApiResult = tempResult;
 			if (!apiResult.data.list) return [];
 			while (apiResult.data.discussions > apiResult.data.list.length) {
 				pageCounter++;
-				tempResult = await (await fetch(apiURL + pageCounter)).json();
+				tempResult = (await axios(apiURL + pageCounter)).data;
 				apiResult.data.list = apiResult.data.list.concat(
 					tempResult.data.list!
 				);

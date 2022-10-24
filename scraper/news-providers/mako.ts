@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Talkback } from "../../common/types";
 import { getRssWithTalkbacks } from "./base";
 
@@ -25,11 +26,11 @@ export function getMako() {
 		"https://rcs.mako.co.il/rss/31750a2610f26110VgnVCM1000005201000aRCRD.xml",
 		(item) => item.guid!,
 		async (id: string): Promise<Talkback[]> => {
-			const apiResult: ApiResult = await await (
-				await fetch(
+			const apiResult: ApiResult = await (
+				await axios(
 					`https://www.mako.co.il/AjaxPage?jspName=talkbacksInJSONresponse.jsp&vgnextoid=${id}&page=1`
 				)
-			).json();
+			).data;
 			const convertTalkback = (item: Item): Talkback => ({
 				title: item.subject,
 				writer: item.username,
