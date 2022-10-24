@@ -9,11 +9,11 @@ async function hspellAnalyze(text: string): Promise<string[]> {
 	const hspell = spawn("hspell", ["-l"]);
 	hspell.stdin.write(encode(text, "ISO-8859-8"));
 	hspell.stdin.end();
-	return new Promise<string[]>((resolve) => {
-		hspell.stdout.on("data", (data: Buffer) => {
-			resolve(parseHspellOutput(decode(data, "ISO-8859-8")));
-		});
-	});
+	const hspellOutput: string[] = [];
+	for await (const chunk of hspell.stdout) {
+		hspellOutput.push(decode(chunk, "ISO-8859-8"));
+	}
+	return parseHspellOutput(hspellOutput.join(""));
 }
 
 /**
@@ -58,7 +58,7 @@ function parseHspellOutput(text: string): string[] {
 }
 
 export async function frequentWords(
-	data: string[]
+	data: string[] | string
 ): Promise<Map<string, number>> {
 	const wordMap = new Map<string, number>();
 	const countWords = (analyzed: string[]): void => {
@@ -66,6 +66,7 @@ export async function frequentWords(
 			wordMap.set(word, (wordMap.get(word) ?? 0) + 1);
 		}
 	};
-	countWords((await hspellAnalyze(data.join("\n"))).flat());
+	const text = Array.isArray(data) ? data.join("\n") : data;
+	countWords((await hspellAnalyze(text)).flat());
 	return wordMap;
 }
