@@ -5,7 +5,7 @@ import { decode, encode } from "iconv-lite";
  * Get a text and return list of base words.
  * @param text text to analyze
  */
-async function hspellAnalyze(text: string): Promise<string[]> {
+export async function hspellAnalyze(text: string): Promise<string[]> {
 	const hspell = spawn("hspell", ["-l"]);
 	hspell.stdin.write(encode(text, "ISO-8859-8"));
 	hspell.stdin.end();
