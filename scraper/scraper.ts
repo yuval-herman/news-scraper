@@ -1,9 +1,9 @@
 import Database from "better-sqlite3";
-import { appendFileSync, writeFileSync } from "fs";
+import { appendFileSync } from "fs";
 import hash from "object-hash";
 import path from "path";
 import { Article, DBTalkback, Talkback } from "../common/types";
-import { frequentWords } from "./hspell";
+import { frequentWords, hspellAnalyze } from "./hspell";
 import { getInn } from "./news-providers/inn";
 import { getMako } from "./news-providers/mako";
 import { getNow14 } from "./news-providers/now14";
@@ -47,6 +47,14 @@ db.prepare(
 		mainTopic,
 		articleGUID,
 		FOREIGN KEY(articleGUID) REFERENCES articles(guid)
+)`
+).run();
+
+db.prepare(
+	`CREATE TABLE IF NOT EXISTS words (
+        id INTEGER PRIMARY KEY,
+		word UNIQUE,
+        amount INTEGER
 )`
 ).run();
 
@@ -126,7 +134,7 @@ const insertTalkbacks = async (talkbacks: DBTalkback[]) => {
 /**
  * Insert one article into the DB.
  */
-const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
+const insertArticle = db.prepare(`INSERT or REPLACE INTO articles (
     guid,
     title,
     link,
@@ -148,30 +156,6 @@ const insertArticle = db.prepare(`INSERT or IGNORE INTO articles (
  * @param articles articles to insert into the DB
  */
 const insertArticles = async (articles: Article[]) => {
-	console.log("calculating frequency");
-
-	const frequencyMap = await frequentWords(
-		articles.map(
-			(article) =>
-				article.content +
-				". " +
-				article.talkbacks
-					.map((talkback) => talkback.title || talkback.content)
-					.join(". ") +
-				". "
-		)
-	);
-
-	console.log("writing to file");
-
-	writeFileSync(
-		"temp.txt",
-		JSON.stringify(
-			[...frequencyMap].sort((a, b) => b[1] - a[1]),
-			null,
-			3
-		)
-	);
 	for (let i = 0; i < articles.length; i++) {
 		articles[i].mainTopic = "[]";
 	}
@@ -187,6 +171,26 @@ const insertArticles = async (articles: Article[]) => {
 			insertTalkbacks(article.talkbacks.map(addGUID));
 		}
 	})(articles);
+};
+
+const getAllStatement = db.prepare(
+	`
+SELECT content, title from articles
+UNION ALL
+select content, title from talkbacks
+`
+);
+const getAllContent: () => { content: string; title: string }[] =
+	getAllStatement.all.bind(getAllStatement);
+
+const insertWords = (words: Map<string, number>) => {
+	const insert = db.prepare(`INSERT or replace INTO words (word, amount)
+	VALUES (?, ?)`);
+	db.transaction((words: Map<string, number>) => {
+		for (const word of words) {
+			insert.run(word);
+		}
+	})(words);
 };
 
 /**
@@ -211,25 +215,60 @@ async function poolPromises<T>(
 	return results;
 }
 
-poolPromises([getInn, getMako, getWalla, getYnet, getNow14], 4).then((res) => {
-	let error;
-	try {
-		insertArticles(res.flat());
-	} catch (error) {
-		// Log errors in error file
-		appendFileSync(
-			path.join(__dirname, "scraper-log.log"),
-			"ERROR - " + new Date().toISOString() + "\n"
-		);
-	} finally {
-		// Log scraping finished
-		let msg = "scraper initialized - " + new Date().toISOString() + "\n";
-		if (error) {
-			msg += "\nERROR START\n" + error + "\nERROR END\n";
+poolPromises([getInn, getMako, getWalla, getYnet, getNow14], 4).then(
+	async (res) => {
+		let error;
+		try {
+			await insertArticles(res.flat());
+			console.log("calculating frequency");
+			const frequencyMap = await frequentWords(
+				getAllContent().map(
+					(item) => item.content + ". " + item.title + ". "
+				)
+			);
+			(async () => {
+				const articles: Article[] = db
+					.prepare(`select * from articles`)
+					.all();
+				const talkbacks: DBTalkback[] = db
+					.prepare(`select * from talkbacks`)
+					.all();
+				computeTopic(articles);
+				computeTopic(talkbacks);
+
+				async function computeTopic(data: (Article | DBTalkback)[]) {
+					const hspellQueue: (() => Promise<void>)[] = [];
+					for (const item of data) {
+						item.mainTopic = JSON.stringify(
+							hspellQueue.push(async () => {
+								item.mainTopic = JSON.stringify(
+									await hspellAnalyze(item.content + ". " + item.title)
+								);
+								if ("articleGUID" in item) insertTalkback.run(item);
+								else insertArticle.run(item);
+							})
+						);
+					}
+					await poolPromises(hspellQueue, 20);
+				}
+			})();
+			insertWords(frequencyMap);
+		} catch (error) {
+			// Log errors in error file
+			appendFileSync(
+				path.join(__dirname, "scraper-log.log"),
+				"ERROR - " + new Date().toISOString() + "\n"
+			);
+		} finally {
+			// Log scraping finished
+			let msg = "scraper initialized - " + new Date().toISOString() + "\n";
+			if (error) {
+				msg += "\nERROR START\n" + error + "\nERROR END\n";
+			}
+			appendFileSync(path.join(__dirname, "scraper-log.log"), msg);
 		}
-		appendFileSync(path.join(__dirname, "scraper-log.log"), msg);
 	}
-});
+);
 
 // Log scraping started without errors
 appendFileSync(
