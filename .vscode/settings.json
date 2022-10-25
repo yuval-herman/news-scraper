@@ -1,3 +1,4 @@
 {
-	"cSpell.words": ["talkback", "unlikes", "Ynet"]
+	"cSpell.words": ["talkback", "unlikes", "Ynet"],
+	"python.analysis.typeCheckingMode": "basic"
 }
