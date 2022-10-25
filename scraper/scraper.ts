@@ -73,6 +73,19 @@ db.prepare(
 	END;`
 ).run();
 
+// Same as above but for articles.
+db.prepare(
+	`CREATE TRIGGER IF NOT EXISTS replace_articles
+	AFTER DELETE
+	ON articles
+	FOR EACH ROW
+	BEGIN
+		UPDATE articles
+		SET id = old.id
+		WHERE id = (SELECT MAX(id) FROM articles);
+	END;`
+).run();
+
 const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     hash,
     writer,
@@ -241,15 +254,39 @@ poolPromises([getInn, getMako, getWalla, getYnet, getNow14], 4).then(
 					for (const item of data) {
 						item.mainTopic = JSON.stringify(
 							hspellQueue.push(async () => {
-								item.mainTopic = JSON.stringify(
-									await hspellAnalyze(item.content + ". " + item.title)
-								);
-								if ("articleGUID" in item) insertTalkback.run(item);
-								else insertArticle.run(item);
+								try {
+									item.mainTopic = JSON.stringify([
+										...new Set(
+											await hspellAnalyze(
+												item.content + ". " + item.title
+											)
+										),
+									]);
+									if ("articleGUID" in item) insertTalkback.run(item);
+									else insertArticle.run(item);
+								} catch (error) {
+									// Log errors in error file
+									appendFileSync(
+										path.join(__dirname, "scraper-log.log"),
+										"ERROR - topic computation" +
+											new Date().toISOString() +
+											"\n"
+									);
+								}
 							})
 						);
 					}
 					await poolPromises(hspellQueue, 20);
+					db.prepare(
+						`UPDATE talkbacks
+					SET id = (select max(id)+1 from talkbacks WHERE id < (SELECT MAX(id) FROM talkbacks))
+					where id = (SELECT MAX(id) FROM talkbacks)`
+					).run();
+					db.prepare(
+						`UPDATE articles
+					SET id = (select max(id)+1 from articles WHERE id < (SELECT MAX(id) FROM articles))
+					where id = (SELECT MAX(id) FROM articles)`
+					).run();
 				}
 			})();
 			insertWords(frequencyMap);
