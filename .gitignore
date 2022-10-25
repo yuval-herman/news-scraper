@@ -33,3 +33,5 @@ scratchpad.py
 
 *.db
 *.tar
+server_url
+server_data/
