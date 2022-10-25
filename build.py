@@ -1,4 +1,4 @@
-#!/usr/bin/python3.8
+#!/usr/bin/python3
 from enum import Enum, auto
 from fnmatch import fnmatch
 from glob import glob
