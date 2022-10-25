@@ -1,6 +1,6 @@
 import express from "express";
 import { getRandomNumbers, sampleRandom } from "../common/helpers";
-import { Article } from "../common/types";
+import { Article, DBTalkback } from "../common/types";
 import {
 	articleHasTalkbacks,
 	articlesMaxRowid,
@@ -25,15 +25,17 @@ app.get("/random/talkback/", (req, res) => {
 
 	const talkbacks = Array(amount);
 	let guidArr = getArticlesGuidRandomOrder();
-	let selection;
+	let selection: DBTalkback[] | undefined;
+
 	if (topics.length) {
 		selection = getTalkbacksByTopic(topics);
 	}
-
 	for (let i = 0; i < talkbacks.length && guidArr.length; i++) {
-		talkbacks[i] = sampleRandom(
-			selection || getTalkbacksByArticleGuid(guidArr.pop()!)
-		)[0];
+		if (selection && selection.length) talkbacks[i] = selection.pop();
+		else
+			talkbacks[i] = sampleRandom(
+				getTalkbacksByArticleGuid(guidArr.pop()!)
+			)[0];
 		while (!talkbacks[i]) {
 			talkbacks[i] = sampleRandom(
 				getTalkbacksByArticleGuid(guidArr.pop()!)
@@ -58,15 +60,16 @@ app.get("/random/talkback/:guid", (req, res) => {
  */
 app.get("/random/article/", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
-	const hasTalkbacks = req.query.hasTalkbacks;
+	const hasTalkbacks = req.query.hasTalkbacks === "true";
+
 	const articles = Array<Article>(amount);
 	let counter = 0;
 	for (let i = 0; i < amount; i++) {
 		counter = 0;
 		do {
-			articles[i] = getArticleByRowid(
-				getRandomNumbers(articlesMaxRowid(), 1)[0]
-			);
+			const rnd = getRandomNumbers(articlesMaxRowid(), 1)[0];
+
+			articles[i] = getArticleByRowid(rnd);
 			counter += 1;
 		} while (
 			hasTalkbacks &&

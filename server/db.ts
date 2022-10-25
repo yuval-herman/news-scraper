@@ -33,19 +33,39 @@ export const getTalkbacksByArticleGuid = (guid: string): DBTalkback[] =>
 
 /**
  * Get all talkbacks related to topic array shuffled randomly.
- * @param topics an array of topics to search for
+ * @param reqTopics an array of topics to search for
  */
-export const getTalkbacksByTopic = (topics: string[]): DBTalkback[] => {
+export const getTalkbacksByTopic = (reqTopics: string[]): DBTalkback[] => {
 	const data: DBTalkback[] = db
 		.prepare(
 			`SELECT * from talkbacks
 		     where mainTopic != '[]' ORDER by random()`
 		)
 		.all();
-	return data.filter((item) => {
-		const topics = JSON.parse(item.mainTopic) as string[];
-		return topics.some((item) => topics.includes(item));
+	const rankingWords = (
+		db
+			.prepare(
+				`select word, amount from words ORDER by amount DESC LIMIT 1500`
+			)
+			.all() as { word: string; amount: number }[]
+	).filter((word) => reqTopics.includes(word.word));
+
+	const zero = { amount: 0 };
+	const calcWordScore = (word: string): number => {
+		return -(rankingWords.find((value) => value.word === word) ?? zero)
+			.amount;
+	};
+
+	const temp = data.sort((a, b) => {
+		const aTopics: string[] = JSON.parse(a.mainTopic);
+		const bTopics: string[] = JSON.parse(b.mainTopic);
+		return (
+			bTopics.reduce((prev, curr) => prev + calcWordScore(curr), 0) -
+			aTopics.reduce((prev, curr) => prev + calcWordScore(curr), 0)
+		);
 	});
+
+	return temp;
 };
 
 /**
