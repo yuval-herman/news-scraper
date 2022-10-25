@@ -3,6 +3,7 @@ from enum import Enum, auto
 from fnmatch import fnmatch
 from glob import glob
 import os
+from pathlib import Path
 import shutil
 import argparse
 from subprocess import Popen, run, DEVNULL
@@ -27,6 +28,9 @@ parser.add_argument('action',
 parser.add_argument('-n', action='store_true', help='start NEMO in dev mode')
 
 args = parser.parse_args()
+
+with open('server_url') as file:
+    SERVER_URL = file.read()
 
 
 def copyDir(src: str, dst: str):
@@ -68,23 +72,25 @@ def deploy():
 
     # copy all files
     run(['scp', '-r', *glob('deploy/*'),
-        'root@172.104.236.178:/root/news-scraper/'])
+        SERVER_URL + ':/root/news-scraper/'])
 
     # install scraper
-    run(['ssh', 'root@172.104.236.178', 'cd',
+    run(['ssh', SERVER_URL, 'cd',
         '/root/news-scraper/scraper', ';', 'npm', 'ci'])
-    Popen(['ssh', 'root@172.104.236.178', 'cd',
+    Popen(['ssh', SERVER_URL, 'cd',
            '/root/news-scraper/scraper', ';', 'node', 'scraper.js'], stdout=DEVNULL)
 
     # install server
-    run(['ssh', 'root@172.104.236.178', 'cd',
+    run(['ssh', SERVER_URL, 'cd',
         '/root/news-scraper/server', ';', 'npm', 'ci'])
-    run(['ssh', 'root@172.104.236.178', 'systemctl',
+    run(['ssh', SERVER_URL, 'systemctl',
         'restart', 'news-game-server.service'])
 
 
 def fetch():
-    run(['scp', 'root@172.104.236.178:/root/news-scraper/scraper/db.db', 'remoteDB.db'])
+    Path('server_data/').mkdir(exist_ok=True)
+    run(['scp', SERVER_URL + ':/root/news-scraper/scraper/db.db',
+        SERVER_URL + ':/var/log/nginx/access.log*', 'server_data/'])
 
 
 def dev():
@@ -126,7 +132,7 @@ elif args.action == Actions.bDeploy.name:
     build()
     deploy()
 elif args.action == Actions.fetch.name:
-    print("fetching db")
+    print("fetching server data")
     fetch()
 elif args.action == Actions.dev.name:
     if os.geteuid() != 0 and args.n:
