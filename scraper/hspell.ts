@@ -21,40 +21,7 @@ export async function hspellAnalyze(text: string): Promise<string[]> {
  * @param text hspell output
  */
 function parseHspellOutput(text: string): string[] {
-	const parsed: string[] = [];
-	let word;
-	const lastLocs: {
-		t?: number;
-		n?: number;
-		bracket?: number;
-		space?: number;
-	} = {};
-	for (let i = 0; i < text.length; i++) {
-		if (text[i] === "\n") {
-			lastLocs.n = i;
-			if (text.slice(i + 1, i + 7) === "שגיאות") break;
-
-			if (text[i + 1] === "\t") {
-				lastLocs.t = i + 1;
-			} else {
-				word = text.slice(lastLocs.t! + 1, lastLocs.bracket);
-				if (word === "שונות") {
-					for (let k = lastLocs.space! + 2; k < text.length; k++) {
-						if (text[k] === "\n") {
-							word = text.slice(lastLocs.space! + 1, k);
-							break;
-						}
-					}
-				}
-				parsed.push(word);
-			}
-		} else if (text[i] === "(") {
-			lastLocs.bracket = i;
-		} else if (text[i] === " ") {
-			lastLocs.space = i;
-		}
-	}
-	return parsed;
+	return text.match(/[א-ת"]+(?=\(ע,|\(ת,)/g)!;
 }
 
 export async function frequentWords(
