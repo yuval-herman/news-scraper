@@ -44,25 +44,29 @@ export const getTalkbacksByTopic = (reqTopics: string[]): DBTalkback[] => {
 		.all();
 	const rankingWords = (
 		db
-			.prepare(
-				`select word, amount from words ORDER by amount DESC LIMIT 1500`
-			)
+			.prepare(`select word, amount from words ORDER by amount DESC`)
 			.all() as { word: string; amount: number }[]
 	).filter((word) => reqTopics.includes(word.word));
 
-	const zero = { amount: 0 };
-	const calcWordScore = (word: string): number => {
-		return -(rankingWords.find((value) => value.word === word) ?? zero)
-			.amount;
+	const zero = { amount: Infinity };
+	const calcWordsScore = (words: string[]): number => {
+		const score: number[] = [];
+		let size = 0;
+		for (const curr of words) {
+			const num =
+				1 /
+				(rankingWords.find((value) => value.word === curr) ?? zero).amount;
+			score.push(num);
+			if (num) size++;
+		}
+
+		return score.reduce((p, c) => (p + c) * (size / 9));
 	};
 
 	const temp = data.sort((a, b) => {
 		const aTopics: string[] = JSON.parse(a.mainTopic);
 		const bTopics: string[] = JSON.parse(b.mainTopic);
-		return (
-			bTopics.reduce((prev, curr) => prev + calcWordScore(curr), 0) -
-			aTopics.reduce((prev, curr) => prev + calcWordScore(curr), 0)
-		);
+		return calcWordsScore(aTopics) - calcWordsScore(bTopics);
 	});
 
 	return temp;

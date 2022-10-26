@@ -22,23 +22,30 @@ app.get("/random/talkback/", (req, res) => {
 	//TODO, FIXME: there is a rare bug when the same talkback can return twice
 	const amount = Number(req.query.amount) || 1;
 	const topics: string[] = JSON.parse(req.query.topics?.toString() ?? "[]");
-
 	const talkbacks = Array(amount);
-	let guidArr = getArticlesGuidRandomOrder();
-	let selection: DBTalkback[] | undefined;
 
+	let selection: DBTalkback[] | undefined;
+	let guidArr: string[] | undefined;
 	if (topics.length) {
 		selection = getTalkbacksByTopic(topics);
+	} else {
+		guidArr = getArticlesGuidRandomOrder();
 	}
-	for (let i = 0; i < talkbacks.length && guidArr.length; i++) {
-		if (selection && selection.length) talkbacks[i] = selection.pop();
-		else
+
+	for (
+		let i = 0;
+		i < talkbacks.length && (selection?.length || guidArr?.length);
+		i++
+	) {
+		if (selection && selection.length) {
+			talkbacks[i] = selection.pop();
+		} else
 			talkbacks[i] = sampleRandom(
-				getTalkbacksByArticleGuid(guidArr.pop()!)
+				getTalkbacksByArticleGuid(guidArr!.pop()!)
 			)[0];
 		while (!talkbacks[i]) {
 			talkbacks[i] = sampleRandom(
-				getTalkbacksByArticleGuid(guidArr.pop()!)
+				getTalkbacksByArticleGuid(guidArr!.pop()!)
 			)[0];
 		}
 	}
