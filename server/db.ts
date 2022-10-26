@@ -36,40 +36,51 @@ export const getTalkbacksByArticleGuid = (guid: string): DBTalkback[] =>
  * @param reqTopics an array of topics to search for
  */
 export const getTalkbacksByTopic = (reqTopics: string[]): DBTalkback[] => {
-	const data: DBTalkback[] = db
-		.prepare(
-			`SELECT * from talkbacks
-		     where mainTopic != '[]' ORDER by random()`
-		)
-		.all();
-	const rankingWords = (
+	const rankingWords = new Map<string, number>(
 		db
-			.prepare(`select word, amount from words ORDER by amount DESC`)
-			.all() as { word: string; amount: number }[]
-	).filter((word) => reqTopics.includes(word.word));
+			.prepare(
+				`select word, amount from words WHERE amount > 5 AND word IN (${reqTopics
+					.map(() => "?")
+					.join(",")})`
+			)
+			.raw()
+			.all(reqTopics)
+	);
 
-	const zero = { amount: Infinity };
-	const calcWordsScore = (words: string[]): number => {
+	const data = (
+		db
+			.prepare(
+				`SELECT * from talkbacks
+		     where mainTopic != '[]'`
+			)
+			.all() as DBTalkback[]
+	)
+		.map((i) => {
+			const mainTopic = Array.isArray(i.mainTopic)
+				? i.mainTopic
+				: (JSON.parse(i.mainTopic) as string[]);
+			return {
+				...i,
+				mainTopic: mainTopic,
+				score: calcWordsScore(mainTopic),
+			};
+		})
+		.sort((a, b) => {
+			return a.score - b.score;
+		});
+
+	function calcWordsScore(words: string[]): number {
 		const score: number[] = [];
 		let size = 0;
 		for (const curr of words) {
-			const num =
-				1 /
-				(rankingWords.find((value) => value.word === curr) ?? zero).amount;
+			const num = 1 / (rankingWords.get(curr) ?? Infinity);
 			score.push(num);
 			if (num) size++;
 		}
-
 		return score.reduce((p, c) => (p + c) * (size / 9));
-	};
+	}
 
-	const temp = data.sort((a, b) => {
-		const aTopics: string[] = JSON.parse(a.mainTopic);
-		const bTopics: string[] = JSON.parse(b.mainTopic);
-		return calcWordsScore(aTopics) - calcWordsScore(bTopics);
-	});
-
-	return temp;
+	return data;
 };
 
 /**
