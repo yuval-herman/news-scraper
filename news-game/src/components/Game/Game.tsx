@@ -184,7 +184,7 @@ function Game(props: GameProps) {
 				{article ? (
 					<Article className={style.article} article={article} />
 				) : (
-					<p className={style.waiter}>מוריד מאמר...</p>
+					<p className={style.waiter}>מוריד מאמרים...</p>
 				)}
 
 				<button
