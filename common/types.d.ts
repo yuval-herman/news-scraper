@@ -25,5 +25,5 @@ export interface DBTalkback extends Talkback {
 	parentID?: number | bigint | null;
 	children: DBTalkback[];
 	articleGUID: string;
-	mainTopic: string;
+	mainTopic: string | string[];
 }
