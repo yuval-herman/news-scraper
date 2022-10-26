@@ -276,7 +276,7 @@ poolPromises([getInn, getMako, getWalla, getYnet, getNow14], 4).then(
 							})
 						);
 					}
-					await poolPromises(hspellQueue, 20);
+					await poolPromises(hspellQueue, 5);
 					db.prepare(
 						`UPDATE talkbacks
 					SET id = (select max(id)+1 from talkbacks WHERE id < (SELECT MAX(id) FROM talkbacks))
