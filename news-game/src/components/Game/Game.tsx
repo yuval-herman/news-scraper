@@ -50,7 +50,7 @@ function Game(props: GameProps) {
 					await jsonFetch("/random/article?hasTalkbacks=true")
 				)[0];
 				let resTalkbacks: DBTalkback[] = await jsonFetch(
-					"/random/talkback?amount=3&topics=" + resArticle.mainTopic
+					`/random/talkback?amount=3&topics=${resArticle.mainTopic}&except=${resArticle.guid}`
 				);
 				let correctTalkback: DBTalkback = (
 					await jsonFetch("/random/talkback/" + resArticle.guid)
