@@ -49,8 +49,14 @@ function Game(props: GameProps) {
 				let resArticle: ArticleType = (
 					await jsonFetch("/random/article?hasTalkbacks=true")
 				)[0];
+				const topics = JSON.parse(resArticle.mainTopic ?? "[]").slice(
+					0,
+					250
+				);
 				let resTalkbacks: DBTalkback[] = await jsonFetch(
-					`/random/talkback?amount=3&topics=${resArticle.mainTopic}&except=${resArticle.guid}`
+					`/random/talkback?amount=3&topics=${JSON.stringify(
+						topics
+					)}&except=${resArticle.guid}`
 				);
 				let correctTalkback: DBTalkback = (
 					await jsonFetch("/random/talkback/" + resArticle.guid)
