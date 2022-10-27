@@ -69,8 +69,8 @@ function App() {
 		if (!difficulty) {
 			return (
 				<div className={style.main}>
-					<div className={style["text-box"]}>
-						<h4>בחרו רמת קושי</h4>
+					<div className={style["difficulty-selection"]}>
+						<h4 className={style.title}>בחרו רמת קושי</h4>
 						<button
 							className={style.button}
 							onClick={() => setDifficulty("easy")}

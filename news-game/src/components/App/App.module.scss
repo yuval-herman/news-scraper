@@ -36,3 +36,21 @@
 	border-radius: 10px;
 	padding: 1rem;
 }
+
+.difficulty-selection {
+	@extend .text-box;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 1rem;
+	.title {
+		width: 100%;
+	}
+	.button {
+		width: 100%;
+		margin: 0;
+		@media only screen and (min-width: 600px) {
+			width: auto;
+		}
+	}
+}
