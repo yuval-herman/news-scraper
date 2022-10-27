@@ -16,9 +16,9 @@ type Difficulty = {
 };
 
 const difficultyOptions: Difficulty = {
-	easy: { difficulty: "קלה", stageTime: 20, totalStages: 5 },
-	medium: { difficulty: "בינונית", stageTime: 15, totalStages: 5 },
-	hard: { difficulty: "קשה", stageTime: 10, totalStages: 7 },
+	easy: { difficulty: "קלה", stageTime: 40, totalStages: 5 },
+	medium: { difficulty: "בינונית", stageTime: 30, totalStages: 5 },
+	hard: { difficulty: "קשה", stageTime: 20, totalStages: 7 },
 };
 
 /**
