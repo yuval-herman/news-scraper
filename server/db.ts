@@ -14,7 +14,7 @@ const db = new Database(dbPath);
  * Get article by it's guid.
  * @param guid article guid
  */
-export const getArticleById = (guid: string): Article =>
+export const getArticleByGuid = (guid: string): Article =>
 	db.prepare("SELECT * FROM articles WHERE guid = ?").get(guid);
 
 /**
@@ -84,11 +84,11 @@ export const getTalkbacksByTopic = (reqTopics: string[]): DBTalkback[] => {
 };
 
 /**
- * Get a article by it's rowid in the db.
- * @param id sqlite rowid
+ * Get a article by it's id in the db.
+ * @param id sqlite id
  */
-export const getArticleByRowid = (id: number | bigint): Article =>
-	db.prepare("SELECT * FROM articles WHERE rowid = ?").get(id);
+export const getArticleById = (id: number | bigint): Article =>
+	db.prepare("SELECT * FROM articles WHERE id = ?").get(id);
 
 /**
  * Get all articles guid's in random order.
@@ -101,23 +101,23 @@ export const getArticlesGuidRandomOrder = (): string[] => {
 };
 
 /**
- * Get articles biggest rowid.
+ * Get articles biggest id.
  */
-export const articlesMaxRowid = (): number | bigint =>
-	db.prepare("SELECT max(rowid) FROM articles").get()["max(rowid)"];
+export const articlesMaxId = (): number | bigint =>
+	db.prepare("SELECT max(id) FROM articles").get()["max(id)"];
 
 /**
- * Get talkback by it's rowid.
- * @param id talkback rowid
+ * Get talkback by it's id.
+ * @param id talkback id
  */
-export const getTalkbackByRowid = (id: string): DBTalkback =>
-	db.prepare("SELECT * FROM talkbacks WHERE rowid = ?").get(id);
+export const getTalkbackById = (id: string): DBTalkback =>
+	db.prepare("SELECT * FROM talkbacks WHERE id = ?").get(id);
 
 /**
- * Get talkbacks biggest rowid.
+ * Get talkbacks biggest id.
  */
-export const talkbacksMaxRowid = (): number | bigint =>
-	db.prepare("SELECT max(rowid) FROM talkbacks").get()["max(rowid)"];
+export const talkbacksMaxId = (): number | bigint =>
+	db.prepare("SELECT max(id) FROM talkbacks").get()["max(id)"];
 
 export const articleHasTalkbacks = (id: string): 0 | 1 =>
 	db

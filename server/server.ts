@@ -3,9 +3,9 @@ import { getRandomNumbers, sampleRandom } from "../common/helpers";
 import { Article, DBTalkback } from "../common/types";
 import {
 	articleHasTalkbacks,
-	articlesMaxRowid,
+	articlesMaxId,
+	getArticleByGuid,
 	getArticleById,
-	getArticleByRowid,
 	getArticlesGuidRandomOrder,
 	getTalkbacksByArticleGuid,
 	getTalkbacksByTopic,
@@ -81,9 +81,9 @@ app.get("/random/article/", (req, res) => {
 	for (let i = 0; i < amount; i++) {
 		counter = 0;
 		do {
-			const rnd = getRandomNumbers(articlesMaxRowid(), 1)[0];
+			const rnd = getRandomNumbers(articlesMaxId(), 1)[0];
 
-			articles[i] = getArticleByRowid(rnd);
+			articles[i] = getArticleById(rnd);
 			counter += 1;
 		} while (
 			hasTalkbacks &&
@@ -101,7 +101,7 @@ app.get("/random/article/", (req, res) => {
  * Get id and return requested article
  */
 app.get("/article/:id", (req, res) => {
-	const article = getArticleById(req.params.id);
+	const article = getArticleByGuid(req.params.id);
 	if (!article) res.status(404).send("article not found");
 	else res.json(article);
 });
