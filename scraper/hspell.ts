@@ -1,11 +1,12 @@
-import { spawn } from "child_process";
-import { readFileSync } from "fs";
-import { decode, encode } from "iconv-lite";
+import { existsSync, readFileSync } from "fs";
+import path from "path";
 
 const wordMap = new Map<string, string>();
 let reset = true;
 let curr = "";
-for (const word of readFileSync("../hspell_files/nouns.txt")
+let words_path = path.join(__dirname, "../hspell_files/nouns.txt");
+if (!existsSync(words_path)) words_path = path.join(__dirname, "nouns.txt");
+for (const word of readFileSync(words_path)
 	.toString()
 	.match(/(^[א-ת]+|-------)/gm)!) {
 	if (word === "-------") {
