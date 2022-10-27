@@ -59,7 +59,7 @@ def build():
 def deploy():
     # scraper
     copyDir('scraper/dist', 'deploy/scraper')
-    copyFiles(['scraper/package.json', 'scraper/package-lock.json', 'scraper/ignorewords.txt'],
+    copyFiles(['scraper/package.json', 'scraper/package-lock.json', *glob('scraper/hspell_files/*')],
               'deploy/scraper')
 
     # server
@@ -77,8 +77,6 @@ def deploy():
     # install scraper
     run(['ssh', SERVER_URL, 'cd',
         '/root/news-scraper/scraper', ';', 'npm', 'ci'])
-    Popen(['ssh', SERVER_URL, 'cd',
-           '/root/news-scraper/scraper', ';', 'node', 'scraper.js'], stdout=DEVNULL)
 
     # install server
     run(['ssh', SERVER_URL, 'cd',
