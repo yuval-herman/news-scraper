@@ -1,19 +1,33 @@
 import { spawn } from "child_process";
+import { readFileSync } from "fs";
 import { decode, encode } from "iconv-lite";
+
+const wordMap = new Map<string, string>();
+let reset = true;
+let curr = "";
+for (const word of readFileSync("../hspell_files/nouns.txt")
+	.toString()
+	.match(/(^[א-ת]+|-------)/gm)!) {
+	if (word === "-------") {
+		reset = true;
+	} else if (reset) {
+		curr = word;
+		wordMap.set(curr, curr);
+		reset = false;
+	} else {
+		wordMap.set(word, curr);
+	}
+}
 
 /**
  * Get a text and return list of base words.
  * @param text text to analyze
  */
-export async function hspellAnalyze(text: string): Promise<string[]> {
-	const hspell = spawn("hspell", ["-l"]);
-	hspell.stdin.write(encode(text, "ISO-8859-8"));
-	hspell.stdin.end();
-	const hspellOutput: string[] = [];
-	for await (const chunk of hspell.stdout) {
-		hspellOutput.push(decode(chunk, "ISO-8859-8"));
-	}
-	return parseHspellOutput(hspellOutput.join(""));
+export function hspellAnalyze(text: string): string[] {
+	return text
+		.match(/[א-ת]+/g)
+		?.map((i) => wordMap.get(i))
+		.filter(Boolean) as string[];
 }
 
 /**
@@ -34,6 +48,6 @@ export async function frequentWords(
 		}
 	};
 	const text = Array.isArray(data) ? data.join("\n") : data;
-	countWords((await hspellAnalyze(text)).flat());
+	countWords(hspellAnalyze(text).flat());
 	return wordMap;
 }

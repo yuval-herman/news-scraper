@@ -257,9 +257,7 @@ poolPromises([getInn, getMako, getWalla, getYnet, getNow14], 4).then(
 								try {
 									item.mainTopic = JSON.stringify([
 										...new Set(
-											await hspellAnalyze(
-												item.content + ". " + item.title
-											)
+											hspellAnalyze(item.content + ". " + item.title)
 										),
 									]);
 									if ("articleGUID" in item) insertTalkback.run(item);
