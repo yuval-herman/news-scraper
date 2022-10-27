@@ -58,34 +58,6 @@ db.prepare(
 )`
 ).run();
 
-// This trigger runs on talkback delete and
-// moves the last talkback in place of the one deleted.
-// This is done to remove holes in the sqlite rowid sequence.
-db.prepare(
-	`CREATE TRIGGER IF NOT EXISTS replace_talkbacks
-	AFTER DELETE
-	ON talkbacks
-	FOR EACH ROW
-	BEGIN
-		UPDATE talkbacks
-		SET id = old.id
-		WHERE id = (SELECT MAX(id) FROM talkbacks);
-	END;`
-).run();
-
-// Same as above but for articles.
-db.prepare(
-	`CREATE TRIGGER IF NOT EXISTS replace_articles
-	AFTER DELETE
-	ON articles
-	FOR EACH ROW
-	BEGIN
-		UPDATE articles
-		SET id = old.id
-		WHERE id = (SELECT MAX(id) FROM articles);
-	END;`
-).run();
-
 const insertTalkback = db.prepare(`INSERT or REPLACE INTO talkbacks (
     hash,
     writer,
@@ -239,55 +211,34 @@ poolPromises([getInn, getMako, getWalla, getYnet, getNow14], 4).then(
 					(item) => item.content + ". " + item.title + ". "
 				)
 			);
-			(async () => {
-				const articles: Article[] = db
-					.prepare(`select * from articles`)
-					.all();
-				const talkbacks: DBTalkback[] = db
-					.prepare(`select * from talkbacks`)
-					.all();
-				computeTopic(articles);
-				computeTopic(talkbacks);
-
-				async function computeTopic(data: (Article | DBTalkback)[]) {
-					const hspellQueue: (() => Promise<void>)[] = [];
-					for (const item of data) {
-						item.mainTopic = JSON.stringify(
-							hspellQueue.push(async () => {
-								try {
-									item.mainTopic = JSON.stringify([
-										...new Set(
-											hspellAnalyze(item.content + ". " + item.title)
-										),
-									]);
-									if ("articleGUID" in item) insertTalkback.run(item);
-									else insertArticle.run(item);
-								} catch (error) {
-									// Log errors in error file
-									appendFileSync(
-										path.join(__dirname, "scraper-log.log"),
-										"ERROR - topic computation" +
-											new Date().toISOString() +
-											"\n"
-									);
-								}
-							})
-						);
-					}
-					await poolPromises(hspellQueue, 5);
-					db.prepare(
-						`UPDATE talkbacks
-					SET id = (select max(id)+1 from talkbacks WHERE id < (SELECT MAX(id) FROM talkbacks))
-					where id = (SELECT MAX(id) FROM talkbacks)`
-					).run();
-					db.prepare(
-						`UPDATE articles
-					SET id = (select max(id)+1 from articles WHERE id < (SELECT MAX(id) FROM articles))
-					where id = (SELECT MAX(id) FROM articles)`
-					).run();
-				}
-			})();
 			insertWords(frequencyMap);
+			console.log("calculating topics");
+			console.time("topics");
+			const articles: Article[] = db.prepare(`select * from articles`).all();
+			const talkbacks: DBTalkback[] = db
+				.prepare(`select * from talkbacks`)
+				.all();
+			computeTopic(articles);
+			computeTopic(talkbacks);
+			console.timeEnd("topics");
+			function computeTopic(data: Article[] | DBTalkback[]) {
+				const dataType =
+					"articleGUID" in data[0] ? "talkbacks" : "articles";
+				for (const item of data) {
+					item.mainTopic = JSON.stringify([
+						...new Set(hspellAnalyze(item.content + ". " + item.title)),
+					]);
+					if (dataType === "talkbacks") insertTalkback.run(item);
+					else insertArticle.run(item);
+				}
+				// reset rowid
+				db.prepare(
+					`UPDATE ${dataType}
+						SET id = (SELECT count(*)
+						FROM ${dataType} AS T2
+						WHERE T2.id <= ${dataType}.id);`
+				).run();
+			}
 		} catch (error) {
 			// Log errors in error file
 			appendFileSync(
