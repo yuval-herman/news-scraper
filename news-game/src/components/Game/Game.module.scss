@@ -39,6 +39,7 @@
 		align-items: center;
 		.next-button {
 			@extend .button;
+			letter-spacing: 0.5rem;
 			background-color: black;
 			color: white;
 		}
@@ -97,7 +98,6 @@
 	padding: 0.5rem;
 	font-size: large;
 	font-weight: 600;
-	letter-spacing: 0.5rem;
 	&:enabled {
 		cursor: pointer;
 	}
@@ -123,9 +123,6 @@
 			text-decoration: underline;
 			letter-spacing: 0.2rem;
 		}
-	}
-	.button {
-		margin: auto;
 	}
 	.retries {
 		text-align: center;
