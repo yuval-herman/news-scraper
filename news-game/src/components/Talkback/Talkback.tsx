@@ -1,5 +1,6 @@
-import React, { MouseEvent, useEffect, useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 import { DBTalkback } from "../../../../common/types";
+import { removeHTML } from "../../helpers";
 import style from "./Talkback.module.scss";
 
 interface Props {
@@ -12,7 +13,6 @@ interface Props {
 function Talkback(props: Props) {
 	const [articleLink, setArticleLink] = useState<string>();
 	const talkback = props.talkback;
-
 	// Gets the article link after displaying the talkback and every time the talkback changes.
 	useEffect(() => {
 		fetch(`/article/${talkback.articleGUID}`).then((r) =>
@@ -62,7 +62,7 @@ function Talkback(props: Props) {
 							: "")
 					}
 				>
-					{talkback.content}
+					{removeHTML(talkback.content)}
 				</p>
 			) : undefined}
 		</div>

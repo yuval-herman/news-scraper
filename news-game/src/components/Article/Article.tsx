@@ -1,4 +1,5 @@
 import { Article as ArticleType } from "../../../../common/types";
+import { removeHTML } from "../../helpers";
 import style from "./Article.module.scss";
 
 interface Props {
@@ -13,7 +14,7 @@ function Article(props: Props) {
 			className={style.main + (props.className ? " " + props.className : "")}
 		>
 			<p className={style.title}>{article.title}</p>
-			<p className={style.content}>{article.contentSnippet}</p>
+			<p className={style.content}>{removeHTML(article.contentSnippet)}</p>
 		</div>
 	);
 }
