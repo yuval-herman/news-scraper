@@ -27,3 +27,9 @@ export interface DBTalkback extends Talkback {
 	articleGUID: string;
 	mainTopic: string | string[];
 }
+
+export interface Score {
+	name: string;
+	score: number;
+	difficulty: number;
+}
