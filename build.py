@@ -55,8 +55,6 @@ def build():
     # news-game
     run(['npm', 'run', 'build'], cwd='news-game')
 
-
-def deploy():
     # scraper
     copyDir('scraper/dist', 'deploy/scraper')
     copyFiles(['scraper/package.json', 'scraper/package-lock.json', *glob('scraper/hspell_files/*')],
@@ -70,8 +68,10 @@ def deploy():
     # news-game
     copyDir('news-game/build', 'deploy/news-game')
 
+
+def deploy():
     # copy all files
-    run(['scp', '-r', *glob('deploy/*'),
+    run(['rsync', '-r', *glob('deploy/*'),
         SERVER_URL + ':/root/news-scraper/'])
 
     # install scraper
