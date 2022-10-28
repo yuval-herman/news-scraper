@@ -1,0 +1,16 @@
+.waiter {
+	margin: auto;
+	animation: waiter 2s ease-in-out infinite;
+}
+
+@keyframes waiter {
+	0% {
+		translate: -1rem;
+	}
+	50% {
+		translate: 1rem;
+	}
+	100% {
+		translate: -1rem;
+	}
+}
