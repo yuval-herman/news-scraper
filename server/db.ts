@@ -59,7 +59,8 @@ export const getTalkbacksByTopic = (reqTopics: string[]): DBTalkback[] => {
 		db
 			.prepare(
 				`SELECT * from talkbacks
-		     where mainTopic != '[]'`
+				 where mainTopic != '[]'
+				 and length(content) < 200 and length(title) < 200`
 			)
 			.all() as DBTalkback[]
 	)
