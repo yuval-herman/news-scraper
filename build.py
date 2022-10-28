@@ -71,7 +71,7 @@ def build():
 
 def deploy():
     # copy all files
-    run(['rsync', '-r', *glob('deploy/*'),
+    run(['rsync', '-rv', *glob('deploy/*'),
         SERVER_URL + ':/root/news-scraper/'])
 
     # install scraper
@@ -87,7 +87,7 @@ def deploy():
 
 def fetch():
     Path('server_data/').mkdir(exist_ok=True)
-    run(['scp', SERVER_URL + ':/root/news-scraper/scraper/db.db',
+    run(['rsync', '-v', SERVER_URL + ':/root/news-scraper/scraper/db.db',
         SERVER_URL + ':/var/log/nginx/access.log*', 'server_data/'])
 
 
