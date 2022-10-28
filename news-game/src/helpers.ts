@@ -10,7 +10,9 @@ export function removeHTML(html: string) {
  * @param init fetch options
  */
 export async function jsonFetch(input: RequestInfo | URL, init?: RequestInit) {
-	return (await fetch(input, init)).json();
+	const response = await fetch(input, init);
+	if (response.ok) return response.json();
+	throw response.statusText;
 }
 
 /**
@@ -24,14 +26,14 @@ export async function jsonPost(
 	data: unknown,
 	init?: RequestInit
 ) {
-	return await (
-		await fetch(input, {
-			...init,
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(data),
-		})
-	).json();
+	const response = await fetch(input, {
+		...init,
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(data),
+	});
+	if (response.ok) return response.json();
+	throw response.statusText;
 }
