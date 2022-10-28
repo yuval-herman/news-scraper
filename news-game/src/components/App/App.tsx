@@ -47,16 +47,20 @@ function App() {
 		};
 		const id = setInterval(() => {
 			if (!titleRef.current) return;
-			titleRef.current.style.rotate =
-				Math.random() * transitionStrength.rotate + "deg";
-			titleRef.current.style.translate =
-				Math.random() * transitionStrength.translate -
-				0.5 * transitionStrength.translate +
-				"px " +
+			let transform = "";
+			transform +=
+				"rotate(" + Math.random() * transitionStrength.rotate + "deg) ";
+			transform +=
+				"translate(" +
+				(Math.random() * transitionStrength.translate -
+					0.5 * transitionStrength.translate) +
+				"px, " +
 				(Math.random() * transitionStrength.translate -
 					0.5 * transitionStrength.translate +
-					"px");
-			titleRef.current.style.scale = Math.random() * 110 + 120 + "%";
+					"px) ");
+			transform += "scale(" + (Math.random() * 110 + 120) + "%)";
+
+			titleRef.current.style.transform = transform;
 			transitionStrength.rotate *= Math.round(Math.random()) || -1;
 			transitionStrength.translate *= Math.round(Math.random()) || -1;
 		}, 600);
