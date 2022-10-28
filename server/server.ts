@@ -30,26 +30,23 @@ app.get("/random/talkback/", (req, res) => {
 
 	const talkbacks = Array<DBTalkback | undefined>(amount);
 
-	let selection: DBTalkback[] | undefined;
-	let guidArr: string[] | undefined;
-	if (topics.length) {
-		selection = getTalkbacksByTopic(topics);
-	} else {
-		guidArr = getArticlesGuidRandomOrder();
-	}
-
+	const selection = getTalkbacksByTopic(topics);
+	const guidArr = getArticlesGuidRandomOrder();
 	for (
 		let i = 0;
-		i < talkbacks.length && (selection?.length || guidArr?.length);
+		i < talkbacks.length && (selection.length || guidArr.length);
 		i++
 	) {
 		const insert = () => {
-			if (selection && selection.length) {
+			if (selection.length) {
 				talkbacks[i] = selection.pop();
-			} else
+			} else if (guidArr.length)
 				talkbacks[i] = sampleRandom(
-					getTalkbacksByArticleGuid(guidArr!.pop()!)
+					getTalkbacksByArticleGuid(guidArr.pop()!)
 				)[0];
+			else {
+				return null;
+			}
 		};
 		while (
 			!talkbacks[i] ||
@@ -58,7 +55,10 @@ app.get("/random/talkback/", (req, res) => {
 				.slice(0, i)
 				.some((t) => t?.articleGUID === talkbacks[i]?.articleGUID)
 		) {
-			insert();
+			if (insert() === null) {
+				res.status(500);
+				return;
+			}
 		}
 	}
 	res.json(talkbacks);
@@ -70,7 +70,12 @@ app.get("/random/talkback/", (req, res) => {
 app.get("/random/talkback/:guid", (req, res) => {
 	const amount = Number(req.query.amount) || 1;
 	const talkbacks = getTalkbacksByArticleGuid(req.params.guid);
-	res.json(sampleRandom(talkbacks, amount));
+	let talkback: DBTalkback[] | undefined;
+	for (let i = 0; i < 10; i++) {
+		talkback = sampleRandom(talkbacks, amount);
+		if (talkback.some((t) => t.content.length < 100)) break;
+	}
+	res.json(talkback);
 });
 
 /**
