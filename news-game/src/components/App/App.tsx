@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import Game, { GameProps } from "../Game/Game";
+import { Score } from "../../../../common/types";
+import { jsonPost } from "../../helpers";
+import Game, { diffScore, GameProps, StageData } from "../Game/Game";
 import style from "./App.module.scss";
 
 enum GameState {
@@ -7,18 +9,20 @@ enum GameState {
 	playing,
 	instructions,
 	about,
+	globalScore,
+	setName,
 }
 
 type difficultyName = "easy" | "medium" | "hard";
 
 type Difficulty = {
-	[key in difficultyName]: GameProps;
+	[key in difficultyName]: Omit<GameProps, "showGlobalScore">;
 };
 
 const difficultyOptions: Difficulty = {
-	easy: { difficulty: "קלה", stageTime: 40, totalStages: 5 },
-	medium: { difficulty: "בינונית", stageTime: 30, totalStages: 5 },
-	hard: { difficulty: "קשה", stageTime: 20, totalStages: 7 },
+	easy: { difficulty: 0, stageTime: 40, totalStages: 5 },
+	medium: { difficulty: 1, stageTime: 30, totalStages: 5 },
+	hard: { difficulty: 2, stageTime: 20, totalStages: 7 },
 };
 
 /**
@@ -30,8 +34,10 @@ function App() {
 	// for simplicities sake, the project is very light in views so I dimmed it unnecessary.
 	const [gameState, setGameState] = useState<GameState>(GameState.menu);
 	const [difficulty, setDifficulty] = useState<difficultyName>();
+	const [score, setScore] = useState<Score>();
+	const [playerName, setPlayerName] = useState<string>();
+	const [topScores, setTopScores] = useState<Score[]>();
 	const titleRef = useRef<HTMLHeadingElement>(null);
-
 	// This animates the title with translations combined with css `transition: all`
 	useEffect(() => {
 		if (!titleRef.current) return;
@@ -102,11 +108,16 @@ function App() {
 				>
 					חזרה לתפריט
 				</button>
-				<Game {...difficultyOptions[difficulty]} />
+				<Game
+					{...difficultyOptions[difficulty]}
+					showGlobalScore={(playScore) => {
+						setScore(playScore);
+						setGameState(GameState.globalScore);
+					}}
+				/>
 			</div>
 		);
-	}
-	if (gameState === GameState.about) {
+	} else if (gameState === GameState.about) {
 		return (
 			<div className={style.main}>
 				<div className={style["text-box"]}>
@@ -162,6 +173,80 @@ function App() {
 						onClick={() => setGameState(GameState.menu)}
 					>
 						חזרה לתפריט
+					</button>
+				</div>
+			</div>
+		);
+	} else if (gameState === GameState.globalScore) {
+		if (!playerName) {
+			setGameState(GameState.setName);
+		}
+		if (!topScores) {
+			return (
+				<div className={style["text-box"]}>
+					<p className={style.waiter}>מוריד מידע...</p>;
+				</div>
+			);
+		}
+		return (
+			<div className={style.main}>
+				<div className={style["text-box"]}>
+					<h3>התוצאות שלך({score?.name}) הן:</h3>
+					<h4>
+						{score?.score.toPrecision(2)} ברמת קושי{" "}
+						{diffScore[score?.difficulty ?? 0]}
+					</h4>
+					<ol>
+						{topScores.map((gScore) => (
+							<li>
+								{gScore.name} קיבל {gScore.score.toPrecision(2)} ברמת
+								קושי {diffScore[gScore.difficulty]}
+							</li>
+						))}
+					</ol>
+					<button
+						style={{ margin: "1rem" }}
+						className={style.button}
+						onClick={() => setGameState(GameState.menu)}
+					>
+						חזרה לתפריט
+					</button>
+				</div>
+			</div>
+		);
+	} else if (gameState === GameState.setName) {
+		return (
+			<div className={style.main}>
+				<div className={style["text-box"]}>
+					<div>
+						<p>התוצאות שלך הולכות להישלח לשרת, מה שמך?</p>
+						<input
+							type="text"
+							placeholder="ישראל ישראלי"
+							value={playerName}
+							onChange={(event) =>
+								setPlayerName(event.currentTarget.value)
+							}
+							className={style.input}
+						/>
+					</div>
+					<button
+						className={style.button}
+						style={{ marginTop: "1rem" }}
+						onClick={() => {
+							if (!playerName) {
+								alert(
+									"חובה למלא שם כדי לראות את התוצאות של שאר השחקנים"
+								);
+								return;
+							}
+							jsonPost("/score", { ...score!, name: playerName }).then(
+								setTopScores
+							);
+							setGameState(GameState.globalScore);
+						}}
+					>
+						שלח
 					</button>
 				</div>
 			</div>

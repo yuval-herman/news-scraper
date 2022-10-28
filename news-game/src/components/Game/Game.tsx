@@ -1,23 +1,35 @@
 import { useEffect, useRef, useState } from "react";
-import { Article as ArticleType, DBTalkback } from "../../../../common/types";
+import {
+	Article as ArticleType,
+	DBTalkback,
+	Score,
+} from "../../../../common/types";
+import { jsonFetch } from "../../helpers";
 import Article from "../Article/Article";
 import Talkback from "../Talkback/Talkback";
 import style from "./Game.module.scss";
 
-/**
- * An alias to (await fetch(input, init)).json()
- * @param input url to fetch
- * @param init fetch options
- */
-async function jsonFetch(input: RequestInfo | URL, init?: RequestInit) {
-	return (await fetch(input, init)).json();
+export interface StageData {
+	article: ArticleType;
+	talkbacks: DBTalkback[];
+	time?: number;
+	correct?: boolean;
 }
 
 export interface GameProps {
 	stageTime: number;
 	totalStages: number;
-	difficulty: string;
+	difficulty: number;
+	showGlobalScore: (stagesData: Score) => void;
 }
+
+export const diffScore: {
+	[key: number]: string;
+} = {
+	0: "קלה",
+	1: "בינונית",
+	2: "קשה",
+};
 
 function Game(props: GameProps) {
 	const STAGE_TIME = props.stageTime;
@@ -28,15 +40,7 @@ function Game(props: GameProps) {
 	const [showCorrect, setShowCorrect] = useState<boolean>(false);
 	const [time, setTime] = useState<number>(STAGE_TIME);
 	const [stage, setStage] = useState<number>(0);
-	const [stagesData, setStagesData] = useState<
-		{ article: ArticleType; talkbacks: DBTalkback[] }[]
-	>([]);
-	const [scoresTab, setScoresTab] = useState<
-		{
-			time: number;
-			correct: boolean;
-		}[]
-	>([]);
+	const [stagesData, setStagesData] = useState<StageData[]>([]);
 
 	// Called on first render. Fetches all the data for the game
 	useEffect(() => {
@@ -84,7 +88,11 @@ function Game(props: GameProps) {
 		// Player ran out of time to answer
 		if (timeOut) {
 			setShowCorrect(false);
-			setScoresTab((prev) => [...prev, { correct: false, time: 0 }]);
+			setStagesData((prev) => {
+				prev[stage].correct = false;
+				prev[stage].time = 0;
+				return prev;
+			});
 			setStage((prev) => prev + 1);
 		}
 		setTime(STAGE_TIME);
@@ -136,9 +144,10 @@ function Game(props: GameProps) {
 		let finalScore = 0;
 
 		// Calculate score
-		for (const item of scoresTab) {
+		for (const item of stagesData) {
 			finalScore +=
-				((item.time + (STAGE_TIME - item.time) / 1.5) / STAGE_TIME) *
+				((item.time ?? 0 + (STAGE_TIME - (item.time ?? 0)) / 1.5) /
+					STAGE_TIME) *
 				Number(item.correct);
 		}
 
@@ -147,15 +156,15 @@ function Game(props: GameProps) {
 				<h1 className={style.title}>נגמר!</h1>
 				<h4 className={style["secondary-title"]}>הנה התוצאות:</h4>
 				<ol>
-					{scoresTab.map((item, i) => (
+					{stagesData.map((item, i) => (
 						<li key={i}>
-							{STAGE_TIME - item.time === STAGE_TIME ? (
+							{STAGE_TIME - (item.time ?? 0) === STAGE_TIME ? (
 								<p>לא הספקת לענות...</p>
 							) : (
 								<p>
 									{item.correct ? "צדקת!" : "טעות..."} לקח לך{" "}
-									{(STAGE_TIME - item.time).toPrecision(2)} שניות להגיע
-									לתשובה
+									{(STAGE_TIME - (item.time ?? 0)).toPrecision(2)}{" "}
+									שניות להגיע לתשובה
 								</p>
 							)}
 						</li>
@@ -165,7 +174,20 @@ function Game(props: GameProps) {
 				<h2>
 					{finalScore.toPrecision(2)}/{TOTAL_STAGES}
 				</h2>
-				<h3>ברמת קושי {props.difficulty}!</h3>
+				<h3>ברמת קושי {diffScore[props.difficulty]}!</h3>
+				<button
+					className={style.button}
+					onClick={() =>
+						props.showGlobalScore({
+							score: finalScore,
+							name: "",
+							difficulty: props.difficulty,
+						})
+					}
+				>
+					ניתן ללחוץ כאן כדי לשלוח את התוצאות לשרת ולראות את הדירוג הכללי
+					שלך
+				</button>
 			</div>
 		);
 	}
@@ -179,8 +201,8 @@ function Game(props: GameProps) {
 				<p className={style.counter}>זמן - {time.toPrecision(3)}</p>
 				<p className={style.score}>
 					ניקוד{" "}
-					{scoresTab.reduce(
-						(prev, curr) => prev + Number(curr.correct),
+					{stagesData.reduce(
+						(prev, curr) => prev + (Number(curr.correct) || 0),
 						0
 					)}
 					/{TOTAL_STAGES}
@@ -211,13 +233,11 @@ function Game(props: GameProps) {
 						onClick={() => {
 							if (!article) return;
 							setShowCorrect((prev) => !prev);
-							setScoresTab((prev) => [
-								...prev,
-								{
-									correct: item.articleGUID === article.guid,
-									time: time,
-								},
-							]);
+							setStagesData((prev) => {
+								prev[stage].correct = item.articleGUID === article.guid;
+								prev[stage].time = time;
+								return prev;
+							});
 						}}
 						key={item.hash}
 						talkback={item}
