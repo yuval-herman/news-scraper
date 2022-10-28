@@ -1,6 +1,6 @@
 import path from "path";
 import Database from "better-sqlite3";
-import { Article, DBTalkback } from "../common/types";
+import { Article, DBTalkback, Score } from "../common/types";
 
 // Db path changes after compilation, thus check if deployed to use new path
 const isDeployed = Boolean(process.env.NEWS_SCRAPER_DEPLOYED);
@@ -9,6 +9,14 @@ const dbPath = isDeployed
 	: path.join(__dirname, "../../../scraper/dist/db.db");
 
 const db = new Database(dbPath);
+
+db.prepare(
+	`CREATE TABLE IF NOT EXISTS scores (
+		score,
+		name UNIQUE,
+		difficulty
+	)`
+).run();
 
 /**
  * Get article by it's guid.
@@ -124,3 +132,36 @@ export const articleHasTalkbacks = (id: string): 0 | 1 =>
 		.prepare("SELECT EXISTS(SELECT NULL FROM talkbacks WHERE articleGUID=?)")
 		.pluck()
 		.get(id);
+
+export const getTopScores = (): Score[] =>
+	db
+		.prepare("SELECT * FROM scores ORDER BY score, difficulty DESC LIMIT 20")
+		.all();
+
+export const getScoreByName = (name: string): Score =>
+	db.prepare("SELECT * FROM scores WHERE name = ?").get(name);
+
+export const insertScore = (score: Score) =>
+	db
+		.prepare(
+			`INSERT INTO scores (
+				score,
+				name,
+				difficulty
+				) VALUES (
+				@score,
+				@name,
+				@difficulty
+				)`
+		)
+		.run(score);
+
+export const updateScore = (score: Score) =>
+	db
+		.prepare(
+			`UPDATE scores SET 
+				score = @score,
+				difficulty = @difficulty
+				where name = @name`
+		)
+		.run(score);

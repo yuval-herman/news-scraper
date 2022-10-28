@@ -1,18 +1,23 @@
 import express from "express";
 import { getRandomNumbers, sampleRandom } from "../common/helpers";
-import { Article, DBTalkback } from "../common/types";
+import { Article, DBTalkback, Score } from "../common/types";
 import {
 	articleHasTalkbacks,
 	articlesMaxId,
 	getArticleByGuid,
 	getArticleById,
 	getArticlesGuidRandomOrder,
+	getScoreByName,
 	getTalkbacksByArticleGuid,
 	getTalkbacksByTopic,
+	getTopScores,
+	insertScore,
+	updateScore,
 } from "./db";
 
 const app = express();
 const port = 4000;
+app.use(express.json());
 
 /**
  * Get amount and topics and return an array of talkbacks related to topics with `amount` length.
@@ -104,6 +109,26 @@ app.get("/article/:id", (req, res) => {
 	const article = getArticleByGuid(req.params.id);
 	if (!article) res.status(404).send("article not found");
 	else res.json(article);
+});
+
+app.post("/score", (req, res) => {
+	const score: Score = req.body;
+	try {
+		insertScore(score);
+	} catch (error: any) {
+		if (error.message.slice(0, 24) !== "UNIQUE constraint failed") {
+			res.json(error);
+			return;
+		}
+		const oldScore = getScoreByName(score.name);
+
+		if (
+			oldScore.score < score.score &&
+			oldScore.difficulty <= score.difficulty
+		)
+			updateScore(score);
+	}
+	res.json(getTopScores());
 });
 
 app.listen(port, () => {
