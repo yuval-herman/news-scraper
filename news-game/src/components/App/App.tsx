@@ -191,7 +191,7 @@ function App() {
 		return (
 			<div className={style.main}>
 				<div className={style["text-box"]}>
-					<h3>התוצאות שלך({score?.name}) הן:</h3>
+					<h3>התוצאות שלך({playerName}) הן:</h3>
 					<h4>
 						{score?.score.toPrecision(2)} ברמת קושי{" "}
 						{diffScore[score?.difficulty ?? 0]}
