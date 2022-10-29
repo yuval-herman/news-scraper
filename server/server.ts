@@ -116,22 +116,34 @@ app.get("/article/:id", (req, res) => {
 	else res.json(article);
 });
 
-app.post("/score", (req, res) => {
-	const score: Score = req.body;
-	try {
-		insertScore(score);
-	} catch (error: any) {
-		if (error.message.slice(0, 24) !== "UNIQUE constraint failed") {
-			res.json(error);
-			return;
-		}
-		const oldScore = getScoreByName(score.name);
+function isScore(score: any): score is Score {
+	return (
+		score &&
+		typeof score === "object" &&
+		typeof score.name === "string" &&
+		typeof score.difficulty === "number" &&
+		typeof score.score === "number"
+	);
+}
 
-		if (
-			oldScore.score < score.score &&
-			oldScore.difficulty <= score.difficulty
-		)
-			updateScore(score);
+app.post("/score", (req, res) => {
+	const score: unknown = req.body;
+	if (score && typeof score === "object" && isScore(score)) {
+		try {
+			insertScore(score);
+		} catch (error: any) {
+			if (error.message.slice(0, 24) !== "UNIQUE constraint failed") {
+				res.json(error);
+				return;
+			}
+			const oldScore = getScoreByName(score.name);
+
+			if (
+				oldScore.score < score.score &&
+				oldScore.difficulty <= score.difficulty
+			)
+				updateScore(score);
+		}
 	}
 	res.json(getTopScores());
 });
