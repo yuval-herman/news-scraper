@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Score } from "../../../../common/types";
 import { jsonPost } from "../../helpers";
-import Game, { diffScore, GameProps, StageData } from "../Game/Game";
+import Game, { diffScore, GameProps } from "../Game/Game";
 import style from "./App.module.scss";
 
 enum GameState {
@@ -192,14 +192,19 @@ function App() {
 				</div>
 			);
 		}
+
 		return (
 			<div className={style.main}>
 				<div className={style["text-box"]}>
-					<h3>התוצאות שלך({playerName}) הן:</h3>
-					<h4>
-						{score?.score.toPrecision(2)} ברמת קושי{" "}
-						{diffScore[score?.difficulty ?? 0]}
-					</h4>
+					{score ? (
+						<div>
+							<h3>התוצאות שלך({playerName}) הן:</h3>
+							<h4>
+								{score?.score.toPrecision(2)} ברמת קושי{" "}
+								{diffScore[score?.difficulty ?? 0]}
+							</h4>
+						</div>
+					) : undefined}
 					<ol>
 						{topScores.map((gScore) => (
 							<li>
@@ -270,6 +275,12 @@ function App() {
 					onClick={() => setGameState(GameState.playing)}
 				>
 					להתחלה!
+				</button>
+				<button
+					className={style.button}
+					onClick={() => setGameState(GameState.globalScore)}
+				>
+					טבלת ניקוד
 				</button>
 				<button
 					className={style.button}
