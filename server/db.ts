@@ -136,7 +136,7 @@ export const articleHasTalkbacks = (id: string): 0 | 1 =>
 
 export const getTopScores = (): Score[] =>
 	db
-		.prepare("SELECT * FROM scores ORDER BY score, difficulty DESC LIMIT 20")
+		.prepare("select * from scores ORDER by score DESC, difficulty DESC LIMIT 20")
 		.all();
 
 export const getScoreByName = (name: string): Score =>
