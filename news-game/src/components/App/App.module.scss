@@ -66,3 +66,11 @@
 	border-radius: 10px;
 	padding: 0.5rem;
 }
+.falling {
+	z-index: -10;
+	width: 2rem;
+	position: fixed;
+	top: 0vh;
+	left: 0vw;
+	transition: all 1s linear;
+}
