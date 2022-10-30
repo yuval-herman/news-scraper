@@ -228,23 +228,29 @@ function Game(props: GameProps) {
 				</button>
 			</div>
 			<div className={style.talkbacks}>
-				{talkbacks?.map((item) => (
-					<Talkback
-						onClick={() => {
-							if (!article) return;
-							setShowCorrect((prev) => !prev);
-							setStagesData((prev) => {
-								prev[stage].correct = item.articleGUID === article.guid;
-								prev[stage].time = time;
-								return prev;
-							});
-						}}
-						key={item.hash}
-						talkback={item}
-						isCorrect={article && item.articleGUID === article.guid}
-						showCorrect={showCorrect}
-					/>
-				))}
+				{talkbacks?.map((item: DBTalkback | undefined) => {
+					if (!item) {
+						return <div>this is an error</div>;
+					}
+					return (
+						<Talkback
+							onClick={() => {
+								if (!article) return;
+								setShowCorrect((prev) => !prev);
+								setStagesData((prev) => {
+									prev[stage].correct =
+										item.articleGUID === article.guid;
+									prev[stage].time = time;
+									return prev;
+								});
+							}}
+							key={item.hash}
+							talkback={item}
+							isCorrect={article && item.articleGUID === article.guid}
+							showCorrect={showCorrect}
+						/>
+					);
+				})}
 			</div>
 		</div>
 	);
