@@ -17,10 +17,12 @@ export default function FallingPapers(props: { amount?: number }) {
 		}
 	};
 	useEffect(() => {
-		for (let i = 0; i < papersRef.current.length; i++) {
-			papersRef.current[i].style.top = Math.random() * 200 - 200 + "vh";
-			papersRef.current[i].style.left = Math.random() * 100 + "vw";
-			papersRef.current[i].style.rotate = Math.random() * 360 + "deg";
+		if (!papersRef.current[0].style.top) {
+			for (let i = 0; i < papersRef.current.length; i++) {
+				papersRef.current[i].style.top = Math.random() * 200 - 200 + "vh";
+				papersRef.current[i].style.left = Math.random() * 100 + "vw";
+				papersRef.current[i].style.rotate = Math.random() * 360 + "deg";
+			}
 		}
 		const papersInterval = setInterval(() => {
 			for (let i = 0; i < papersRef.current.length; i++) {
