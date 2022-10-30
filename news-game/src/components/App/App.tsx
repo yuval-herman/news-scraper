@@ -128,6 +128,7 @@ function App() {
 	} else if (gameState === GameState.about) {
 		return (
 			<div className={style.main}>
+				<FallingPapers amount={40} />
 				<div className={style["text-box"]}>
 					<p>המשחק נבנה ב❤ ע"י יובל הרמן.</p>
 					<p>
@@ -159,6 +160,7 @@ function App() {
 	} else if (gameState === GameState.instructions) {
 		return (
 			<div className={style.main}>
+				<FallingPapers amount={40} />
 				<div className={style["text-box"]}>
 					<p>המשחק די פשוט!</p>
 					<p>במסך יוצגו 2 אלמנטים עיקריים: המאמר, והתגובות.</p>
@@ -199,6 +201,7 @@ function App() {
 
 		return (
 			<div className={style.main}>
+				<FallingPapers amount={40} />
 				<div className={style["text-box"]}>
 					{score ? (
 						<div>
