@@ -37,7 +37,8 @@ function App() {
 	const [difficulty, setDifficulty] = useState<difficultyName>();
 	const [score, setScore] = useState<Score>();
 	const [playerName, setPlayerName] = useState<string>();
-	const [topScores, setTopScores] = useState<Score[]>();
+	const [topScores, setTopScores] = useState<Score[][]>();
+	const [scoresDiff, setScoresDiff] = useState<number>(0);
 	const titleRef = useRef<HTMLHeadingElement>(null);
 
 	// This animates the title with translations combined with css `transition: all`
@@ -198,7 +199,6 @@ function App() {
 				</div>
 			);
 		}
-
 		return (
 			<div className={style.main}>
 				<FallingPapers amount={40} />
@@ -213,13 +213,33 @@ function App() {
 						</div>
 					) : undefined}
 					<ol>
-						{topScores.map((gScore) => (
+						{topScores[scoresDiff].map((gScore) => (
 							<li>
 								{gScore.name} קיבל {gScore.score.toPrecision(2)} ברמת
 								קושי {diffScore[gScore.difficulty]}
 							</li>
 						))}
 					</ol>
+					<div className={style["score-diff-buttons"]}>
+						<button
+							className={style.button}
+							onClick={() => setScoresDiff(0)}
+						>
+							רמת קושי קלה
+						</button>
+						<button
+							className={style.button}
+							onClick={() => setScoresDiff(1)}
+						>
+							רמת קושי בינונית
+						</button>
+						<button
+							className={style.button}
+							onClick={() => setScoresDiff(2)}
+						>
+							רמת קושי קשה
+						</button>
+					</div>
 					<button
 						style={{ margin: "1rem" }}
 						className={style.button}
@@ -257,7 +277,10 @@ function App() {
 								return;
 							}
 							jsonPost("/score", { ...score!, name: playerName }).then(
-								setTopScores
+								(res) => {
+									setTopScores(res);
+									setScoresDiff(score?.difficulty ?? 0);
+								}
 							);
 							setGameState(GameState.globalScore);
 						}}

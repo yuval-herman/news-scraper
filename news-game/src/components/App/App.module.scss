@@ -66,3 +66,13 @@
 	border-radius: 10px;
 	padding: 0.5rem;
 }
+.score-diff-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.5rem;
+	.button {
+		padding: 0.1rem;
+		flex-grow: 1;
+	}
+}

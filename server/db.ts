@@ -134,11 +134,16 @@ export const articleHasTalkbacks = (id: string): 0 | 1 =>
 		.pluck()
 		.get(id);
 
-export const getTopScores = (): Score[] =>
-	db
-		.prepare("select * from scores ORDER by score DESC, difficulty DESC LIMIT 20")
+export const getTopScores = (): Score[][] => {
+	const scores: Score[] = db
+		.prepare("select * from scores ORDER by score DESC")
 		.all();
-
+	const scoresByDifficulty: Score[][] = [[], [], []];
+	for (const score of scores) {
+		scoresByDifficulty[score.difficulty].push(score);
+	}
+	return scoresByDifficulty;
+};
 export const getScoreByName = (name: string): Score =>
 	db.prepare("SELECT * FROM scores WHERE name = ?").get(name);
 
