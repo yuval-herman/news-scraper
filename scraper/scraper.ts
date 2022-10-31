@@ -5,6 +5,7 @@ import path from "path";
 import { Article, DBTalkback, Talkback } from "../common/types";
 import { frequentWords, hspellAnalyze } from "./hspell";
 import { getInn } from "./news-providers/inn";
+import { getIsraelHayom } from "./news-providers/israelHayom";
 import { getMako } from "./news-providers/mako";
 import { getNow14 } from "./news-providers/now14";
 import { getWalla } from "./news-providers/walla";
@@ -200,61 +201,59 @@ async function poolPromises<T>(
 	return results;
 }
 
-poolPromises([getInn, getMako, getWalla, getYnet, getNow14], 4).then(
-	async (res) => {
-		let error;
-		try {
-			await insertArticles(res.flat());
-			console.log("calculating frequency");
-			const frequencyMap = await frequentWords(
-				getAllContent().map(
-					(item) => item.content + ". " + item.title + ". "
-				)
-			);
-			insertWords(frequencyMap);
-			console.log("calculating topics");
-			console.time("topics");
-			const articles: Article[] = db.prepare(`select * from articles`).all();
-			const talkbacks: DBTalkback[] = db
-				.prepare(`select * from talkbacks`)
-				.all();
-			computeTopic(articles);
-			computeTopic(talkbacks);
-			console.timeEnd("topics");
-			function computeTopic(data: Article[] | DBTalkback[]) {
-				const dataType =
-					"articleGUID" in data[0] ? "talkbacks" : "articles";
-				for (const item of data) {
-					item.mainTopic = JSON.stringify([
-						...new Set(hspellAnalyze(item.content + ". " + item.title)),
-					]);
-					if (dataType === "talkbacks") insertTalkback.run(item);
-					else insertArticle.run(item);
-				}
-				// reset rowid
-				db.prepare(
-					`UPDATE ${dataType}
+poolPromises(
+	[getInn, getMako, getWalla, getYnet, getNow14, getIsraelHayom],
+	4
+).then(async (res) => {
+	let error;
+	try {
+		await insertArticles(res.flat());
+		console.log("calculating frequency");
+		const frequencyMap = await frequentWords(
+			getAllContent().map((item) => item.content + ". " + item.title + ". ")
+		);
+		insertWords(frequencyMap);
+		console.log("calculating topics");
+		console.time("topics");
+		const articles: Article[] = db.prepare(`select * from articles`).all();
+		const talkbacks: DBTalkback[] = db
+			.prepare(`select * from talkbacks`)
+			.all();
+		computeTopic(articles);
+		computeTopic(talkbacks);
+		console.timeEnd("topics");
+		function computeTopic(data: Article[] | DBTalkback[]) {
+			const dataType = "articleGUID" in data[0] ? "talkbacks" : "articles";
+			for (const item of data) {
+				item.mainTopic = JSON.stringify([
+					...new Set(hspellAnalyze(item.content + ". " + item.title)),
+				]);
+				if (dataType === "talkbacks") insertTalkback.run(item);
+				else insertArticle.run(item);
+			}
+			// reset rowid
+			db.prepare(
+				`UPDATE ${dataType}
 						SET id = (SELECT count(*)
 						FROM ${dataType} AS T2
 						WHERE T2.id <= ${dataType}.id);`
-				).run();
-			}
-		} catch (error) {
-			// Log errors in error file
-			appendFileSync(
-				path.join(__dirname, "scraper-log.log"),
-				"ERROR - " + new Date().toISOString() + "\n"
-			);
-		} finally {
-			// Log scraping finished
-			let msg = "scraper initialized - " + new Date().toISOString() + "\n";
-			if (error) {
-				msg += "\nERROR START\n" + error + "\nERROR END\n";
-			}
-			appendFileSync(path.join(__dirname, "scraper-log.log"), msg);
+			).run();
 		}
+	} catch (error) {
+		// Log errors in error file
+		appendFileSync(
+			path.join(__dirname, "scraper-log.log"),
+			"ERROR - " + new Date().toISOString() + "\n"
+		);
+	} finally {
+		// Log scraping finished
+		let msg = "scraper initialized - " + new Date().toISOString() + "\n";
+		if (error) {
+			msg += "\nERROR START\n" + error + "\nERROR END\n";
+		}
+		appendFileSync(path.join(__dirname, "scraper-log.log"), msg);
 	}
-);
+});
 
 // Log scraping started without errors
 appendFileSync(
