@@ -6,7 +6,7 @@ import { getRssWithTalkbacks } from "./base";
 export function getIsraelHayom() {
 	return getRssWithTalkbacks(
 		"https://www.israelhayom.co.il/rss.xml",
-		(item) => item.guid,
+		(item) => item.link.split("/").at(-1)!,
 		async (id: string): Promise<Talkback[]> => {
 			const apiResult: OpenWebApiResult = await (
 				await axios.post(
