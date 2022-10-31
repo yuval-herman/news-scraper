@@ -20,7 +20,7 @@ export function getInn() {
 						headers: {
 							"User-Agent": undefined,
 							"x-spot-id": "sp_wqPYg8lN",
-							"x-post-id": "0-580781",
+							"x-post-id": "0-" + id,
 						},
 					}
 				)
