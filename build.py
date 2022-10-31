@@ -88,7 +88,13 @@ def deploy():
 def fetch():
     Path('server_data/').mkdir(exist_ok=True)
     run(['rsync', '-v', SERVER_URL + ':/root/news-scraper/scraper/db.db',
-        SERVER_URL + ':/var/log/nginx/access.log*', 'server_data/'])
+        SERVER_URL + ':/var/log/nginx/access.log*',
+        SERVER_URL + ':/var/log/rkhunter.log',
+        SERVER_URL + ':/var/log/auth.log',
+        'server_data/'])
+    zip_files = glob('*.gz', root_dir='server_data/')
+    if zip_files:
+        run(['gzip', '-dk', *zip_files, '-f'], cwd='server_data/')
 
 
 def dev():
