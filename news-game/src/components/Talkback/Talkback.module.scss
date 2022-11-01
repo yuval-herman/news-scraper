@@ -58,6 +58,7 @@ $main: #aaa;
 			&:hover {
 				overflow-y: visible;
 				scale: 130%;
+				height: 140%;
 				translate: 0 -40%;
 				&.content-long {
 					max-height: 20rem;
