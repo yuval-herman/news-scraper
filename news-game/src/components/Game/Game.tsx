@@ -23,7 +23,7 @@ export interface GameProps {
 }
 
 function Game(props: GameProps) {
-	const STAGE_TIME = props.gameMode === GameMode.normal ? 1 : 10;
+	const STAGE_TIME = props.gameMode === GameMode.normal ? 60 : 10;
 	const TOTAL_STAGES = props.gameMode === GameMode.normal ? 10 : 5;
 	const rendered = useRef(false);
 	const timeIndicator = useRef<HTMLDivElement>(null);
