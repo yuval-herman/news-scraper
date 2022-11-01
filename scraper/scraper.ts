@@ -202,7 +202,7 @@ async function poolPromises<T>(
 }
 
 poolPromises(
-	[getInn, getMako, getWalla, getYnet, getNow14, getIsraelHayom],
+	[getIsraelHayom, getInn, getMako, getWalla, getYnet, getNow14],
 	4
 ).then(async (res) => {
 	let error;
