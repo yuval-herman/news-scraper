@@ -1,4 +1,4 @@
-import { GameMode } from "../news-game/src/components/Game/Game";
+import { GameMode } from "./globals";
 
 export interface Talkback {
 	writer: string;
@@ -35,3 +35,5 @@ export interface Score {
 	score: number;
 	gameMode: GameMode;
 }
+
+export type TopScores = { [gameMode in GameMode]: Score[] };

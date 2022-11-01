@@ -1,6 +1,7 @@
 import path from "path";
 import Database from "better-sqlite3";
-import { Article, DBTalkback, Score } from "../common/types";
+import { Article, DBTalkback, Score, TopScores } from "../common/types";
+import { GameMode } from "../common/globals";
 
 // Db path changes after compilation, thus check if deployed to use new path
 const isDeployed = Boolean(process.env.NEWS_SCRAPER_DEPLOYED);
@@ -13,8 +14,9 @@ const db = new Database(dbPath);
 db.prepare(
 	`CREATE TABLE IF NOT EXISTS scores (
 		score,
-		name UNIQUE,
-		difficulty
+		name,
+		difficulty,
+		UNIQUE(name,difficulty)
 	)`
 ).run();
 
@@ -134,17 +136,17 @@ export const articleHasTalkbacks = (id: string): 0 | 1 =>
 		.pluck()
 		.get(id);
 
-export const getTopScores = (): Score[][] => {
+export const getTopScores = (): TopScores => {
 	const scores: Score[] = db
 		.prepare("select * from scores ORDER by score DESC")
 		.all();
-	const scoresByDifficulty: Score[][] = [[], [], []];
+	const scoresByMode: TopScores = { מהיר: [], רגיל: [] };
 	for (const score of scores) {
-		scoresByDifficulty[score.difficulty].push(score);
+		scoresByMode[score.gameMode].push(score);
 	}
-	return scoresByDifficulty;
+	return scoresByMode;
 };
-export const getScoreByName = (name: string): Score =>
+export const getScoreByName = (name: string): Score[] =>
 	db.prepare("SELECT * FROM scores WHERE name = ?").get(name);
 
 export const insertScore = (score: Score) =>
@@ -160,7 +162,7 @@ export const insertScore = (score: Score) =>
 				@difficulty
 				)`
 		)
-		.run(score);
+		.all(score);
 
 export const updateScore = (score: Score) =>
 	db

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Score } from "../../../../common/types";
+import { GameMode } from "../../globals";
 import { jsonPost } from "../../helpers";
 import FallingPapers from "../FallingPapers/FallingPapers";
-import Game, { GameMode } from "../Game/Game";
+import Game from "../Game/Game";
 import style from "./App.module.scss";
 
 enum GameState {

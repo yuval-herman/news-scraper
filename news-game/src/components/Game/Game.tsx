@@ -4,6 +4,7 @@ import {
 	DBTalkback,
 	Score,
 } from "../../../../common/types";
+import { GameMode } from "../../globals";
 import { jsonFetch } from "../../helpers";
 import Article from "../Article/Article";
 import Talkback from "../Talkback/Talkback";
@@ -14,11 +15,6 @@ export interface StageData {
 	talkbacks: DBTalkback[];
 	time?: number;
 	correct?: boolean;
-}
-
-export enum GameMode {
-	normal = "רגיל",
-	fast = "מהיר",
 }
 
 export interface GameProps {
@@ -77,7 +73,7 @@ function Game(props: GameProps) {
 			console.log("fetched");
 			setStagesData((prev) => [...prev, ...data]);
 		})().catch((errorObj: Error) => setError(errorObj));
-	}, [needMoreArticles]);
+	}, [needMoreArticles, TOTAL_STAGES]);
 
 	// Main game loop.
 	const timeOut = time <= 0;
@@ -87,7 +83,8 @@ function Game(props: GameProps) {
 			error ||
 			showCorrect ||
 			stage === stagesData.length ||
-			!stagesData.length
+			!stagesData.length ||
+			(stage === (stagesData.length || TOTAL_STAGES) && !needMoreArticles)
 		)
 			return;
 		// Player ran out of time to answer
@@ -120,6 +117,8 @@ function Game(props: GameProps) {
 		stagesData,
 		STAGE_TIME,
 		TOTAL_STAGES,
+		needMoreArticles,
+		props.gameMode,
 	]);
 
 	if (error) {
@@ -147,7 +146,7 @@ function Game(props: GameProps) {
 	}
 
 	// Game is done.
-	if (stage === (stagesData.length || TOTAL_STAGES)) {
+	if (stage === (stagesData.length || TOTAL_STAGES) && !needMoreArticles) {
 		let finalScore = 0;
 
 		// Calculate score

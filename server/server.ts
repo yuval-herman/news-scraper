@@ -1,4 +1,5 @@
 import express from "express";
+import { GameMode } from "../common/globals";
 import { getRandomNumbers, sampleRandom } from "../common/helpers";
 import { Article, DBTalkback, Score } from "../common/types";
 import {
@@ -121,14 +122,14 @@ function isScore(score: any): score is Score {
 		score &&
 		typeof score === "object" &&
 		typeof score.name === "string" &&
-		typeof score.difficulty === "number" &&
-		typeof score.score === "number"
+		typeof score.score === "number" &&
+		score.gameMode in GameMode
 	);
 }
 
 app.post("/score", (req, res) => {
 	const score: unknown = req.body;
-	if (score && typeof score === "object" && isScore(score)) {
+	if (score && isScore(score)) {
 		try {
 			insertScore(score);
 		} catch (error: any) {
@@ -137,12 +138,15 @@ app.post("/score", (req, res) => {
 				return;
 			}
 			const oldScore = getScoreByName(score.name);
-
-			if (
-				oldScore.score < score.score &&
-				oldScore.difficulty <= score.difficulty
-			)
-				updateScore(score);
+			for (const dbScore of oldScore) {
+				if (
+					dbScore.score < score.score &&
+					dbScore.gameMode === score.gameMode
+				) {
+					updateScore(score);
+					break;
+				}
+			}
 		}
 	}
 	res.json(getTopScores());
