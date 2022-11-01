@@ -31,7 +31,9 @@ env/
 __pycache__/
 scratchpad.py
 
+*.map
 *.db
 *.tar
 server_url
 server_data/
+common/*.js
