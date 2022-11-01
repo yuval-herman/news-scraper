@@ -34,7 +34,9 @@ function Game(props: GameProps) {
 	const [stagesData, setStagesData] = useState<StageData[]>([]);
 
 	const needMoreArticles =
-		stage >= TOTAL_STAGES - 5 && props.gameMode === GameMode.normal;
+		stage >= TOTAL_STAGES - 5 &&
+		props.gameMode === GameMode.normal &&
+		stagesData.length < TOTAL_STAGES * 2;
 
 	// Called on first render. Fetches all the data for the game
 	useEffect(() => {
