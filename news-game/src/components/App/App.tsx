@@ -68,6 +68,19 @@ function App() {
 		window.addEventListener("popstate", onPopState);
 		return () => window.removeEventListener("popstate", onPopState);
 	}, []);
+	useEffect(() => {
+		if (gameState === GameState.globalScore) {
+			if (!playerName) {
+				return;
+			}
+			jsonPost("/score", { ...score!, name: playerName }).then((res) => {
+				console.log(res);
+
+				setTopScores(res);
+				setScoresMode(score?.gameMode ?? GameMode.normal);
+			});
+		}
+	}, [gameState, playerName, score]);
 
 	if (gameState === GameState.playing) {
 		if (!gameMode) {
@@ -182,6 +195,7 @@ function App() {
 				</div>
 			);
 		}
+
 		return (
 			<div className={style.main}>
 				<FallingPapers amount={40} />
@@ -195,8 +209,8 @@ function App() {
 						</div>
 					) : undefined}
 					<ol>
-						{topScores[scoresMode].map((gScore) => (
-							<li>
+						{topScores[scoresMode].map((gScore, i) => (
+							<li key={i}>
 								{gScore.name} קיבל {gScore.score.toPrecision(2)} במצב{" "}
 								{gScore.gameMode}
 							</li>
@@ -252,12 +266,6 @@ function App() {
 								);
 								return;
 							}
-							jsonPost("/score", { ...score!, name: playerName }).then(
-								(res) => {
-									setTopScores(res);
-									setScoresMode(score?.gameMode ?? GameMode.normal);
-								}
-							);
 							setGameState(GameState.globalScore);
 						}}
 					>

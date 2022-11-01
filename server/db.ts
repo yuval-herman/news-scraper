@@ -15,8 +15,8 @@ db.prepare(
 	`CREATE TABLE IF NOT EXISTS scores (
 		score,
 		name,
-		difficulty,
-		UNIQUE(name,difficulty)
+		gameMode,
+		UNIQUE(name,gameMode)
 	)`
 ).run();
 
@@ -147,7 +147,7 @@ export const getTopScores = (): TopScores => {
 	return scoresByMode;
 };
 export const getScoreByName = (name: string): Score[] =>
-	db.prepare("SELECT * FROM scores WHERE name = ?").get(name);
+	db.prepare("SELECT * FROM scores WHERE name = ?").all(name);
 
 export const insertScore = (score: Score) =>
 	db
@@ -155,21 +155,21 @@ export const insertScore = (score: Score) =>
 			`INSERT INTO scores (
 				score,
 				name,
-				difficulty
+				gameMode
 				) VALUES (
 				@score,
 				@name,
-				@difficulty
+				@gameMode
 				)`
 		)
-		.all(score);
+		.run(score);
 
 export const updateScore = (score: Score) =>
 	db
 		.prepare(
 			`UPDATE scores SET 
 				score = @score,
-				difficulty = @difficulty
+				gameMode = @gameMode
 				where name = @name`
 		)
 		.run(score);

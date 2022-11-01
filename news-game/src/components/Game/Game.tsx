@@ -37,11 +37,6 @@ function Game(props: GameProps) {
 		props.gameMode === GameMode.normal &&
 		stage >= TOTAL_STAGES - 5 &&
 		stagesData.length < TOTAL_STAGES * 2;
-	console.table({
-		stage: stage,
-		"stagesData.length": stagesData.length,
-		TOTAL_STAGES: TOTAL_STAGES,
-	});
 
 	// Called on first render. Fetches all the data for the game
 	useEffect(() => {

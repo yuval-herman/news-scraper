@@ -123,16 +123,18 @@ function isScore(score: any): score is Score {
 		typeof score === "object" &&
 		typeof score.name === "string" &&
 		typeof score.score === "number" &&
-		score.gameMode in GameMode
+		Object.values(GameMode).includes(score.gameMode)
 	);
 }
 
 app.post("/score", (req, res) => {
 	const score: unknown = req.body;
+
 	if (score && isScore(score)) {
 		try {
 			insertScore(score);
 		} catch (error: any) {
+			console.log(error.message);
 			if (error.message.slice(0, 24) !== "UNIQUE constraint failed") {
 				res.json(error);
 				return;
