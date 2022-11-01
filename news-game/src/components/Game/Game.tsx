@@ -23,7 +23,7 @@ export interface GameProps {
 }
 
 function Game(props: GameProps) {
-	const STAGE_TIME = props.gameMode === GameMode.normal ? 60 : 10;
+	const STAGE_TIME = props.gameMode === GameMode.normal ? 1 : 10;
 	const TOTAL_STAGES = props.gameMode === GameMode.normal ? 10 : 5;
 	const rendered = useRef(false);
 	const timeIndicator = useRef<HTMLDivElement>(null);
@@ -34,9 +34,14 @@ function Game(props: GameProps) {
 	const [stagesData, setStagesData] = useState<StageData[]>([]);
 
 	const needMoreArticles =
-		stage >= TOTAL_STAGES - 5 &&
 		props.gameMode === GameMode.normal &&
+		stage >= TOTAL_STAGES - 5 &&
 		stagesData.length < TOTAL_STAGES * 2;
+	console.table({
+		stage: stage,
+		"stagesData.length": stagesData.length,
+		TOTAL_STAGES: TOTAL_STAGES,
+	});
 
 	// Called on first render. Fetches all the data for the game
 	useEffect(() => {
@@ -72,7 +77,6 @@ function Game(props: GameProps) {
 
 				data.push({ article: resArticle, talkbacks: resTalkbacks });
 			}
-			console.log("fetched");
 			setStagesData((prev) => [...prev, ...data]);
 		})().catch((errorObj: Error) => setError(errorObj));
 	}, [needMoreArticles, TOTAL_STAGES]);
@@ -86,7 +90,8 @@ function Game(props: GameProps) {
 			showCorrect ||
 			stage === stagesData.length ||
 			!stagesData.length ||
-			(stage === (stagesData.length || TOTAL_STAGES) && !needMoreArticles)
+			(stage === (stagesData.length || TOTAL_STAGES) && !needMoreArticles) ||
+			(props.gameMode === GameMode.normal && timeOut)
 		)
 			return;
 		// Player ran out of time to answer
@@ -148,7 +153,10 @@ function Game(props: GameProps) {
 	}
 
 	// Game is done.
-	if (stage === (stagesData.length || TOTAL_STAGES) && !needMoreArticles) {
+	if (
+		(stage === (stagesData.length || TOTAL_STAGES) && !needMoreArticles) ||
+		(props.gameMode === GameMode.normal && timeOut)
+	) {
 		let finalScore = 0;
 
 		// Calculate score
@@ -156,7 +164,7 @@ function Game(props: GameProps) {
 			finalScore +=
 				((item.time ?? 0 + (STAGE_TIME - (item.time ?? 0)) / 1.5) /
 					STAGE_TIME) *
-				Number(item.correct);
+				Number(item.correct ?? false);
 		}
 
 		return (
