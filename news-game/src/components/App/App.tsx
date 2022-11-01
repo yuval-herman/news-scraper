@@ -74,8 +74,6 @@ function App() {
 				return;
 			}
 			jsonPost("/score", { ...score!, name: playerName }).then((res) => {
-				console.log(res);
-
 				setTopScores(res);
 				setScoresMode(score?.gameMode ?? GameMode.normal);
 			});
