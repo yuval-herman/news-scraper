@@ -1,8 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Score } from "../../../../common/types";
 import { jsonPost } from "../../helpers";
 import FallingPapers from "../FallingPapers/FallingPapers";
-import Game, { diffScore, GameProps } from "../Game/Game";
+import Game, { GameMode } from "../Game/Game";
 import style from "./App.module.scss";
 
 enum GameState {
@@ -14,18 +14,6 @@ enum GameState {
 	setName,
 }
 
-type difficultyName = "easy" | "medium" | "hard";
-
-type Difficulty = {
-	[key in difficultyName]: Omit<GameProps, "showGlobalScore">;
-};
-
-const difficultyOptions: Difficulty = {
-	easy: { difficulty: 0, stageTime: 40, totalStages: 5 },
-	medium: { difficulty: 1, stageTime: 30, totalStages: 5 },
-	hard: { difficulty: 2, stageTime: 20, totalStages: 7 },
-};
-
 /**
  * Contains the entire App.
  * Displays menu on startup.
@@ -34,11 +22,11 @@ function App() {
 	// I opted for an enum-based state management instead of heavy weights like react-router
 	// for simplicities sake, the project is very light in views so I dimmed it unnecessary.
 	const [gameState, setGameState] = useState<GameState>(GameState.menu);
-	const [difficulty, setDifficulty] = useState<difficultyName>();
+	const [gameMode, setGameMode] = useState<GameMode>();
 	const [score, setScore] = useState<Score>();
 	const [playerName, setPlayerName] = useState<string>();
-	const [topScores, setTopScores] = useState<Score[][]>();
-	const [scoresDiff, setScoresDiff] = useState<number>(0);
+	const [topScores, setTopScores] = useState<{ [key in GameMode]: Score[] }>();
+	const [scoresMode, setScoresMode] = useState<GameMode>(GameMode.normal);
 	const titleRef = useRef<HTMLHeadingElement>(null);
 
 	// This animates the title with translations combined with css `transition: all`
@@ -72,7 +60,7 @@ function App() {
 		return () => clearInterval(titleInterval);
 	}, []);
 	// Remove difficulty settings when returning to menu.
-	useEffect(() => setDifficulty(undefined), [gameState]);
+	useEffect(() => setGameMode(undefined), [gameState]);
 	// Change state to menu when returning via browser back button.
 	useEffect(() => {
 		const onPopState = () => setGameState(GameState.menu);
@@ -81,28 +69,22 @@ function App() {
 	}, []);
 
 	if (gameState === GameState.playing) {
-		if (!difficulty) {
+		if (!gameMode) {
 			return (
 				<div className={style.main}>
 					<div className={style["difficulty-selection"]}>
-						<h4 className={style.title}>בחרו רמת קושי</h4>
+						<h4 className={style.title}>בחרו מצב משחק</h4>
 						<button
 							className={style.button}
-							onClick={() => setDifficulty("easy")}
+							onClick={() => setGameMode(GameMode.normal)}
 						>
-							קלה
+							רגיל
 						</button>
 						<button
 							className={style.button}
-							onClick={() => setDifficulty("medium")}
+							onClick={() => setGameMode(GameMode.fast)}
 						>
-							בינונית
-						</button>
-						<button
-							className={style.button}
-							onClick={() => setDifficulty("hard")}
-						>
-							קשה
+							מהיר
 						</button>
 					</div>
 				</div>
@@ -118,7 +100,7 @@ function App() {
 					חזרה לתפריט
 				</button>
 				<Game
-					{...difficultyOptions[difficulty]}
+					gameMode={gameMode}
 					showGlobalScore={(playScore) => {
 						setScore(playScore);
 						setGameState(GameState.globalScore);
@@ -207,37 +189,30 @@ function App() {
 						<div>
 							<h3>התוצאות שלך({playerName}) הן:</h3>
 							<h4>
-								{score?.score.toPrecision(2)} ברמת קושי{" "}
-								{diffScore[score?.difficulty ?? 0]}
+								{score.score.toPrecision(2)} במצב {score.gameMode}
 							</h4>
 						</div>
 					) : undefined}
 					<ol>
-						{topScores[scoresDiff].map((gScore) => (
+						{topScores[scoresMode].map((gScore) => (
 							<li>
-								{gScore.name} קיבל {gScore.score.toPrecision(2)} ברמת
-								קושי {diffScore[gScore.difficulty]}
+								{gScore.name} קיבל {gScore.score.toPrecision(2)} במצב{" "}
+								{gScore.gameMode}
 							</li>
 						))}
 					</ol>
 					<div className={style["score-diff-buttons"]}>
 						<button
 							className={style.button}
-							onClick={() => setScoresDiff(0)}
+							onClick={() => setScoresMode(GameMode.normal)}
 						>
-							רמת קושי קלה
+							מצב רגיל
 						</button>
 						<button
 							className={style.button}
-							onClick={() => setScoresDiff(1)}
+							onClick={() => setScoresMode(GameMode.fast)}
 						>
-							רמת קושי בינונית
-						</button>
-						<button
-							className={style.button}
-							onClick={() => setScoresDiff(2)}
-						>
-							רמת קושי קשה
+							מצב מהיר
 						</button>
 					</div>
 					<button
@@ -279,7 +254,7 @@ function App() {
 							jsonPost("/score", { ...score!, name: playerName }).then(
 								(res) => {
 									setTopScores(res);
-									setScoresDiff(score?.difficulty ?? 0);
+									setScoresMode(score?.gameMode ?? GameMode.normal);
 								}
 							);
 							setGameState(GameState.globalScore);

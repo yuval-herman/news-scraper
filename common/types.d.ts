@@ -1,3 +1,5 @@
+import { GameMode } from "../news-game/src/components/Game/Game";
+
 export interface Talkback {
 	writer: string;
 	title?: string | null;
@@ -31,5 +33,5 @@ export interface DBTalkback extends Talkback {
 export interface Score {
 	name: string;
 	score: number;
-	difficulty: number;
+	gameMode: GameMode;
 }

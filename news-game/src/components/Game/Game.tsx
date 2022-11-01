@@ -16,24 +16,19 @@ export interface StageData {
 	correct?: boolean;
 }
 
+export enum GameMode {
+	normal = "רגיל",
+	fast = "מהיר",
+}
+
 export interface GameProps {
-	stageTime: number;
-	totalStages: number;
-	difficulty: number;
+	gameMode: GameMode;
 	showGlobalScore: (stagesData: Score) => void;
 }
 
-export const diffScore: {
-	[key: number]: string;
-} = {
-	0: "קלה",
-	1: "בינונית",
-	2: "קשה",
-};
-
 function Game(props: GameProps) {
-	const STAGE_TIME = props.stageTime;
-	const TOTAL_STAGES = props.totalStages;
+	const STAGE_TIME = props.gameMode === GameMode.normal ? 60 : 10;
+	const TOTAL_STAGES = props.gameMode === GameMode.normal ? 10 : 5;
 	const rendered = useRef(false);
 	const timeIndicator = useRef<HTMLDivElement>(null);
 	const [error, setError] = useState<Error>();
@@ -42,9 +37,12 @@ function Game(props: GameProps) {
 	const [stage, setStage] = useState<number>(0);
 	const [stagesData, setStagesData] = useState<StageData[]>([]);
 
+	const needMoreArticles =
+		stage >= TOTAL_STAGES - 5 && props.gameMode === GameMode.normal;
+
 	// Called on first render. Fetches all the data for the game
 	useEffect(() => {
-		if (rendered.current) return;
+		if (rendered.current && needMoreArticles === false) return;
 		rendered.current = true;
 		window.history.pushState(undefined, "");
 		(async () => {
@@ -73,17 +71,24 @@ function Game(props: GameProps) {
 					resTalkbacks[randIndex],
 					resTalkbacks[3],
 				];
+
 				data.push({ article: resArticle, talkbacks: resTalkbacks });
 			}
-			setStagesData(data);
+			console.log("fetched");
+			setStagesData((prev) => [...prev, ...data]);
 		})().catch((errorObj: Error) => setError(errorObj));
-	});
+	}, [needMoreArticles]);
 
 	// Main game loop.
 	const timeOut = time <= 0;
 	useEffect(() => {
 		// Here, returning is practically pausing as it stops the clock.
-		if (error || showCorrect || stage === TOTAL_STAGES || !stagesData.length)
+		if (
+			error ||
+			showCorrect ||
+			stage === stagesData.length ||
+			!stagesData.length
+		)
 			return;
 		// Player ran out of time to answer
 		if (timeOut) {
@@ -95,7 +100,9 @@ function Game(props: GameProps) {
 			});
 			setStage((prev) => prev + 1);
 		}
-		setTime(STAGE_TIME);
+		if (props.gameMode === GameMode.fast) {
+			setTime(STAGE_TIME);
+		}
 		const id = setInterval(() => {
 			setTime((prev) => {
 				if (timeIndicator.current)
@@ -140,7 +147,7 @@ function Game(props: GameProps) {
 	}
 
 	// Game is done.
-	if (stage === TOTAL_STAGES) {
+	if (stage === (stagesData.length || TOTAL_STAGES)) {
 		let finalScore = 0;
 
 		// Calculate score
@@ -155,7 +162,7 @@ function Game(props: GameProps) {
 			<div className={style["result-screen"]}>
 				<h1 className={style.title}>נגמר!</h1>
 				<h4 className={style["secondary-title"]}>הנה התוצאות:</h4>
-				<ol>
+				<ol className={style.list}>
 					{stagesData.map((item, i) => (
 						<li key={i}>
 							{STAGE_TIME - (item.time ?? 0) === STAGE_TIME ? (
@@ -174,14 +181,14 @@ function Game(props: GameProps) {
 				<h2>
 					{finalScore.toPrecision(2)}/{TOTAL_STAGES}
 				</h2>
-				<h3>ברמת קושי {diffScore[props.difficulty]}!</h3>
+				<h3>במצב {props.gameMode}</h3>
 				<button
 					className={style.button}
 					onClick={() =>
 						props.showGlobalScore({
 							score: finalScore,
 							name: "",
-							difficulty: props.difficulty,
+							gameMode: props.gameMode,
 						})
 					}
 				>
@@ -215,17 +222,19 @@ function Game(props: GameProps) {
 					<p className={style.waiter}>מוריד מאמרים...</p>
 				)}
 
-				<button
-					className={style["next-button"]}
-					style={{ opacity: showCorrect ? 1 : 0 }}
-					onClick={() => {
-						setStage((prev) => prev + 1);
-						setShowCorrect(false);
-					}}
-					disabled={!showCorrect}
-				>
-					הבא!
-				</button>
+				{props.gameMode === GameMode.fast ? (
+					<button
+						className={style["next-button"]}
+						style={{ opacity: showCorrect ? 1 : 0 }}
+						onClick={() => {
+							setStage((prev) => prev + 1);
+							setShowCorrect(false);
+						}}
+						disabled={!showCorrect}
+					>
+						הבא!
+					</button>
+				) : undefined}
 			</div>
 			<div className={style.talkbacks}>
 				{talkbacks?.map((item: DBTalkback | undefined) => {
@@ -243,6 +252,11 @@ function Game(props: GameProps) {
 									prev[stage].time = time;
 									return prev;
 								});
+
+								if (props.gameMode === GameMode.normal) {
+									setStage((prev) => prev + 1);
+									setShowCorrect(false);
+								}
 							}}
 							key={item.hash}
 							talkback={item}

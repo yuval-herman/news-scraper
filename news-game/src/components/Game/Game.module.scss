@@ -56,6 +56,9 @@
 .result-screen {
 	@extend .main;
 	align-items: center;
+	.list {
+		overflow-y: scroll;
+	}
 	.secondary-title {
 		margin: 0;
 	}
